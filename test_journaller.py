@@ -2,6 +2,8 @@ import unittest
 
 import journaller as j
 
+# Don't use this, it's old lmao
+
 
 class JournalTest(unittest.TestCase):
     def test_ask_question(self):
