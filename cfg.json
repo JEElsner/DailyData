@@ -7,7 +7,7 @@
     "journal_folder": "./",
     "journal_suffix": ".docx",
     "data_folder": "./data/",
-    "data_suffix": ".csv",
+    "data_suffix": ".bsv",
     "delimiter": "`",
     "columns": [
         "journal_day",
