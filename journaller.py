@@ -89,13 +89,14 @@ def main():
             raise ValueError(
                 'Recorded information does not match expected data columns\nRecorded: {r}\nExpected: {e}'.format(r=entry.keys(), e=cfg['columns']))
 
+        # Start the journalling program
+        if cfg['journal']:
+            time = open_journal(entry['journal_day'])
+            entry['journal_time'] = time.total_seconds()
+
         # Write today's data to the file
         file.write(cfg['delimiter'].join([str(i)
                                           for i in entry.values()]) + '\n')
-
-        # Start the journalling program
-        if cfg['journal']:
-            open_journal(entry['journal_day'])
 
 
 def record():
@@ -395,6 +396,11 @@ def open_journal(date: date):
 
         date    The current date so to open the corresponding journal file for
                 the month
+
+    Returns
+
+        a datetime.timedelta instance representing the amount of time the user
+        used their journalling program
     '''
 
     # Construct the path to the journal file
@@ -405,8 +411,14 @@ def open_journal(date: date):
     if not path.exists(journal_path):
         open(journal_path, 'w')
 
+    # Record when the user started editing their journal entry
+    start = datetime.now()
+
     # Open the journal file with the associated program in the OS
-    system('start ' + journal_path)
+    system('start /WAIT ' + journal_path)
+
+    # Return the duration of time the user spent editing their journal
+    return datetime.now() - start
 
 
 if __name__ == '__main__':

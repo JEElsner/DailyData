@@ -3,7 +3,7 @@
     "greeting": "Heyo",
     "activity_file": "./activities.csv",
     "event_file": "./events.csv",
-    "journal": false,
+    "journal": true,
     "journal_folder": "./",
     "journal_suffix": ".docx",
     "data_folder": "./data/",
@@ -17,7 +17,8 @@
         "proactivity",
         "stress",
         "score",
-        "keywords"
+        "keywords",
+        "journal_time"
     ],
     "activity_questions_count": 3,
     "activity_questions": {
