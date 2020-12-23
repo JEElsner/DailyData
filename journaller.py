@@ -16,6 +16,8 @@ from datetime import datetime, date
 import os
 from os import path, system
 
+from pathlib import Path as PathObject
+
 import json
 
 # The path to the configuration JSON file containing all of the settings and
@@ -213,6 +215,7 @@ def open_journal(date: date):
         date.strftime('%Y-%m') + cfg['journal_suffix']
 
     # Create the file if it does not exist
+    PathObject(cfg['journal_folder']).mkdir(parents=True, exist_ok=True)
     if not path.exists(journal_path):
         open(journal_path, 'w')
 
