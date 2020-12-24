@@ -7,18 +7,14 @@ understanding what contributes to the user's overall mood on a given day,
 to promote positive lifestyle changes.
 '''
 
-from ConsoleQuestionPrompts import questions
-
-import random as rand
-
-from datetime import datetime, date
-
+import json
 import os
+import random as rand
+from datetime import date, datetime
 from os import path, system
-
 from pathlib import Path as PathObject
 
-import json
+from ConsoleQuestionPrompts import questions
 
 # The path to the configuration JSON file containing all of the settings and
 # questions
