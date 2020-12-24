@@ -1,1 +1,2 @@
 git+https://github.com/JEElsner/ConsoleQuestionPrompts@1.0.0#egg=consolequestionprompts-jeelsner
+python-docx
