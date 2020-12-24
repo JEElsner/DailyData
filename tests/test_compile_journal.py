@@ -1,0 +1,20 @@
+from DailyData.analyzer import compile_journal
+
+import unittest
+
+
+class TestCompileJournal(unittest.TestCase):
+    def test_word_count(self):
+        lines = ['c c b b a a a a', 'b']
+
+        expected_order = ['a', 'b', 'c']
+        expected_counts = {'c': 2, 'b': 3, 'a': 4}
+
+        actual_order, actual_counts = compile_journal.count_words(lines)
+
+        self.assertListEqual(actual_order, expected_order)
+        self.assertDictEqual(actual_counts, expected_counts)
+
+
+if __name__ == '__main__':
+    unittest.main()
