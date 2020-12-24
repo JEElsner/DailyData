@@ -18,7 +18,7 @@ from ConsoleQuestionPrompts import questions
 
 # The path to the configuration JSON file containing all of the settings and
 # questions
-config_file = './cfg.json'
+config_file = './journaler_config.json'
 
 # Load the config file and parse the settings
 with open(config_file, 'r') as file:

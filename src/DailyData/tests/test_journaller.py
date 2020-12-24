@@ -1,6 +1,6 @@
 import unittest
 
-import journaller as j
+from ..tracker import journaller as j
 
 # Don't use this, it's old lmao
 
