@@ -1,6 +1,6 @@
 import unittest
 
-from ..tracker import journaller as j
+from DailyData.tracker import journaller as j
 
 # Don't use this, it's old lmao
 

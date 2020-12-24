@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 # Stub for a package setup file. This needs to be completed to make a package
 # out of this project.
@@ -9,5 +9,7 @@ from setuptools import setup
 # https://github.com/pypa/sampleproject/blob/master/setup.pys
 
 setup(
+    name='DailyData',
+    packages=find_packages(where='src'),
     package_dir={'': 'src'},  # Specify that the package is in the 'src' folder
 )
