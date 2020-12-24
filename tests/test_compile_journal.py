@@ -2,6 +2,8 @@ from DailyData.analyzer import compile_journal
 
 import unittest
 
+import json
+
 
 class TestCompileJournal(unittest.TestCase):
     def test_word_count(self):
@@ -22,6 +24,21 @@ class TestCompileJournal(unittest.TestCase):
 
         self.assertEqual(order[0], 'c')
         self.assertSetEqual(set(order), {'a', 'b', 'c', 'd', 'e'})
+
+    def test_save_common_words(self):
+        file_path = './tests/test_words.json'
+
+        order = ['a', 'b', 'c']
+        counts = {'a': 3, 'b': 2, 'c': 1}
+
+        compile_journal.save_most_common_words(
+            order, counts, file_path)
+
+        with open(file_path, mode='r') as file:
+            output = json.load(file)
+
+            self.assertDictEqual(
+                output, {w: {'count': counts[w], 'include': False} for w in order})
 
 
 if __name__ == '__main__':

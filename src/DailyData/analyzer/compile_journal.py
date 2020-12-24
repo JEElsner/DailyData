@@ -1,6 +1,10 @@
 from typing import Iterable
 
+import json
+
 import re
+
+from pathlib import Path
 
 
 def count_words(lines: Iterable[str]):
@@ -42,3 +46,13 @@ def count_words(lines: Iterable[str]):
                         break
 
     return order, counts
+
+
+def save_most_common_words(order, counts, file_path):
+    path = Path(file_path)
+    if not path.exists():
+        open(file_path, mode='x').close()
+
+    with open(file_path, mode='w') as file:
+        json.dump(
+            {word: {'count': counts[word], 'include': False} for word in order}, file)
