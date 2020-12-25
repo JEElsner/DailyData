@@ -1,10 +1,39 @@
+import json
+import re
+from pathlib import Path
 from typing import Iterable
 
-import json
+import pandas as pd
 
-import re
+from .parse_docx import get_lines
 
-from pathlib import Path
+
+def load_journal_entries(
+    journal_path, parser=get_lines,
+    output='./output.xlsx',
+    word_count_cutoff=100,
+    word_counts='./counts.json',
+    pd_output=pd.DataFrame.to_excel
+):
+    if output.startswith('.') or word_counts.startswith('.'):
+        path = Path(journal_path)
+        parent_dir = path.parent
+
+        output_path = parent_dir.joinpath(output)
+        word_counts_path = parent_dir.joinpath(word_counts)
+    else:
+        output_path = Path(output)
+        word_counts_path = Path(word_counts)
+
+    entries = parser(journal_path)
+
+    data = pd.DataFrame.from_records(entries, columns=['date', 'entry'])
+    data['date'] = pd.to_datetime(data['date'])
+    data.set_index('date')
+    order, counts = count_words(data['entry'])
+
+    save_most_common_words(order[:word_count_cutoff], counts, word_counts_path)
+    pd_output(data, output_path)
 
 
 def count_words(lines: Iterable[str]):

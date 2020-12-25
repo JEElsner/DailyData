@@ -1,2 +1,15 @@
 git+https://github.com/JEElsner/ConsoleQuestionPrompts@1.0.0#egg=consolequestionprompts-jeelsner
+
 python-docx
+
+# Some other versions (1.19.4 for example), do not play nice with windows
+# Version 1.19.3 is known to work with windows
+# Hopefully this should be fixed in January 2021
+#
+# See these links for more information
+# https://tinyurl.com/y3dm3h86
+# https://developercommunity.visualstudio.com/solutions/1241964/view.html
+numpy==1.19.3
+
+openpyxl # For whatever reason, pandas needs this module, but doesn't include it in requirements
+pandas
