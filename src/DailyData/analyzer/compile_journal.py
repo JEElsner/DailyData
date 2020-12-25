@@ -56,3 +56,10 @@ def save_most_common_words(order, counts, file_path):
     with open(file_path, mode='w') as file:
         json.dump(
             {word: {'count': counts[word], 'include': False} for word in order}, file)
+
+
+def load_ignore_words(file_path):
+    with open(file_path, mode='r') as file:
+        d = json.load(file)
+
+        return (word for word in d if not d[word]['include'])

@@ -1,0 +1,14 @@
+{
+    "a": {
+        "count": 3,
+        "include": false
+    },
+    "b": {
+        "count": 2,
+        "include": true
+    },
+    "c": {
+        "count": 1,
+        "include": false
+    }
+}

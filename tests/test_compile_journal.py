@@ -26,7 +26,7 @@ class TestCompileJournal(unittest.TestCase):
         self.assertSetEqual(set(order), {'a', 'b', 'c', 'd', 'e'})
 
     def test_save_common_words(self):
-        file_path = './tests/test_words.json'
+        file_path = './tests/test_include_output.json'
 
         order = ['a', 'b', 'c']
         counts = {'a': 3, 'b': 2, 'c': 1}
@@ -39,6 +39,12 @@ class TestCompileJournal(unittest.TestCase):
 
             self.assertDictEqual(
                 output, {w: {'count': counts[w], 'include': False} for w in order})
+
+    def test_ignore_words_load(self):
+        file_path = './tests/test_include_input.json'
+
+        self.assertSetEqual(
+            set(compile_journal.load_ignore_words(file_path)), {'a', 'c'})
 
 
 if __name__ == '__main__':
