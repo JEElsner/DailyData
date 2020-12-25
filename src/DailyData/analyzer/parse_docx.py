@@ -21,7 +21,7 @@ def get_lines(file_path):
                     # Get all of the 'normal' style paragraphs for the entry, until
                     # the next heading
                     while not p.style.style_id.startswith('Heading'):
-                        entry += p.text + '\n'
+                        entry += p.text.lower() + '\n'
                         p = next(paragraph_iter)
                 except StopIteration:
                     # If a stop iteration is found during this time, we still
