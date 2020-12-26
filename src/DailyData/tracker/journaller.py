@@ -16,6 +16,8 @@ from pathlib import Path as PathObject
 
 from ConsoleQuestionPrompts import questions
 
+from DailyData.analyzer import parse_docx
+
 # The path to the configuration JSON file containing all of the settings and
 # questions
 config_file = './journaler_config.json'
@@ -202,7 +204,7 @@ def record():
     return entry
 
 
-def open_journal(date: date):
+def open_journal(date: date, create_file=parse_docx.new_doc, header_func=parse_docx.add_header):
     '''
     Open the user's desired journal program
 
@@ -224,7 +226,10 @@ def open_journal(date: date):
     # Create the file if it does not exist
     PathObject(cfg['journal_folder']).mkdir(parents=True, exist_ok=True)
     if not path.exists(journal_path):
-        open(journal_path, 'w')
+        create_file(journal_path)
+
+    # Add a new header
+    header_func(journal_path, date.strftime('%Y-%m-%d'))
 
     # Record when the user started editing their journal entry
     start = datetime.now()

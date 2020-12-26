@@ -35,3 +35,19 @@ def get_lines(file_path):
                     yield heading, entry[:-1]
     except StopIteration:
         pass
+
+
+def add_header(file_path, header: str):
+    doc = Document(file_path)
+
+    try:
+        doc.add_heading(header, level=1)
+    except KeyError:
+        pass
+    doc.add_paragraph()
+
+    doc.save(file_path)
+
+
+def new_doc(file_path):
+    Document().save(file_path)
