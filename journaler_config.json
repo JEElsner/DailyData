@@ -13,14 +13,17 @@
         "journal_day",
         "time",
         "relative_score",
-        "focus",
-        "proactivity",
+        "prod_work",
+        "prod_house",
+        "prod_self",
         "stress",
+        "bothers",
+        "gratefuls",
         "score",
         "keywords",
         "journal_time"
     ],
-    "activity_questions_count": 3,
+    "activity_questions_count": 5,
     "activity_questions": {
         "cook": "cook a meal",
         "exercise": "exercise",
@@ -49,16 +52,7 @@
         "news": "pay attention to the news",
         "music": "listen intently to music",
         "shop": "go shopping",
-        "no_meal": "skip a meal"
-    },
-    "event_questions_count": 1,
-    "event_questions": {
-        "rain": "Did it rain today?",
-        "sun": "Was it sunny today?",
-        "cloudy": "Was it cloudy today?",
-        "world_event": "Was there a major national\/world event today?",
-        "test": "Did you have a test today?",
-        "homework": "Did you have a lot of homework today?",
-        "personal_event": "Was there a major event in your life today?"
+        "no_meal": "skip a meal",
+        "grades": "check your grades"
     }
 }

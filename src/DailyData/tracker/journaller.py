@@ -32,14 +32,8 @@ with open(config_file, 'r') as file:
                                      activity=v)
                                  for k, v in cfg['activity_questions'].items()}
 
-    # Prepend evt_ for 'event' to each event question header. This is done for
-    # the same reasons listed above.
-    cfg['event_questions'] = {'evt_{a}'.format(
-        a=k): v for k, v in cfg['event_questions'].items()}
-
     # Add all activity and event columns to the master list of columns
-    cfg['columns'] += list(cfg['activity_questions'].keys()) + \
-        list(cfg['event_questions'].keys())
+    cfg['columns'] += list(cfg['activity_questions'].keys())
 
     # Check for duplicate column names
     if len(set(cfg['columns'])) != len(cfg['columns']):
@@ -139,6 +133,10 @@ def record():
                 # asked again
                 return None
 
+    # Sanitization function to ensure properly-formed delimited files
+    def sanitize(s: str) -> str:
+        return s.replace(cfg['delimiter'], '')
+
     # Ask the question about the date
     entry['journal_day'] = questions.ask_question(prompt, in_bounds=lambda x: x is not None,
                                                   cast=parse_date_response)
@@ -164,14 +162,30 @@ def record():
 
     # All of these are pretty self explanatory
     # Ask the user a question, and record their response in the dictionary
-    prompt = 'how focused were you today?\n> '
-    entry['focus'] = questions.range_question(prompt)
+    entry['prod_work'] = questions.range_question(
+        prompt='how much school work did you do today?\n> '
+    )
 
-    prompt = 'how proactive were you today?\n> '
-    entry['proactivity'] = questions.range_question(prompt)
+    entry['prod_house'] = questions.range_question(
+        prompt='how much house work (cooking, cleaning, etc.) did you do today?\n> '
+    )
+
+    entry['prod_self'] = questions.range_question(
+        prompt='how much time did you take for yourself?\n> '
+    )
 
     prompt = 'how stressed were you today?\n> '
     entry['stress'] = questions.range_question(prompt)
+
+    entry['bothers'] = questions.ask_question(
+        prompt='What bothered you today?\n> ',
+        cast=sanitize
+    )
+
+    entry['gratefuls'] = questions.ask_question(
+        prompt='What are you grateful for today?\n> ',
+        cast=sanitize
+    )
 
     prompt = 'how good of a day was today?\n> '
     entry['score'] = questions.range_question(prompt)
@@ -180,12 +194,9 @@ def record():
     entry.update(questions.ask_some(cfg['activity_questions'],
                                     cfg['activity_questions_count']))
 
-    entry.update(questions.ask_some(cfg['event_questions'],
-                                    cfg['event_questions_count']))
-
     # Allow the user a little more freedom in expressing the quality of their day
     prompt = 'Input any keywords for today. For example, things that happened today.\n> '
-    entry['keywords'] = questions.ask_question(prompt).replace('`', '')
+    entry['keywords'] = questions.ask_question(prompt, cast=sanitize)
 
     # Return the user's responses
     return entry
