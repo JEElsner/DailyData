@@ -45,8 +45,8 @@ def count_words(lines: Iterable[str]):
 
     # Iterate through each word in each line, incrementing a counter for each word
     for line in lines:
-        # Split lines on 'not-word' character groups
-        for w in re.split('\\W+', line):
+        # Split lines on whitespace character groups
+        for w in re.split('\\s+', line):
             if w not in order:
                 counts.update({w: 1})
                 order.append(w)
