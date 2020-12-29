@@ -13,14 +13,17 @@ import random as rand
 from datetime import date, datetime
 from os import path, system
 from pathlib import Path as PathObject
+from sys import argv
 
 from ConsoleQuestionPrompts import questions
-
 from DailyData.analyzer import parse_docx
 
 # The path to the configuration JSON file containing all of the settings and
 # questions
-config_file = './journaler_config.json'
+if len(argv) > 1:
+    config_file = argv[1]
+else:
+    config_file = './journaler_config.json'
 
 # Load the config file and parse the settings
 with open(config_file, 'r') as file:
