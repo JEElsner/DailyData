@@ -3,7 +3,7 @@
     "greeting": "Heyo",
     "activity_file": "./activities.csv",
     "event_file": "./events.csv",
-    "journal": true,
+    "journal": false,
     "journal_folder": "./journals/",
     "journal_suffix": ".docx",
     "data_folder": "./data/",
