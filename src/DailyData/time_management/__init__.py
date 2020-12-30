@@ -19,6 +19,11 @@ def main(argv=sys.argv[1:]):
     else:
         args, kwargs = _parse_args(argv)
 
+        record_event(args[0])
+        print('Recorded doing {activity} at {time}'.format(
+            activity=args[0],
+            time=datetime.now().strftime('%H:%M')))
+
 
 def record_event(
     activity,
@@ -26,7 +31,7 @@ def record_event(
     data_path=DEFAULT_CONFIG.data_folder
 ):
     with open(data_path + time.strftime('%Y-%m') + '.csv', mode='a') as file:
-        file.write(','.join([activity, time]))
+        file.write(','.join([activity, str(time), '\n']))
 
 
 def _parse_args(args):
