@@ -1,5 +1,15 @@
 import sys
-import getopt
+from datetime import datetime
+from dataclasses import dataclass
+from pathlib import Path
+
+
+@dataclass
+class Configuration:
+    data_folder: str
+
+
+DEFAULT_CONFIG = Configuration(data_folder='./events/')
 
 
 def main(argv=sys.argv[1:]):
@@ -8,6 +18,15 @@ def main(argv=sys.argv[1:]):
         pass
     else:
         args, kwargs = _parse_args(argv)
+
+
+def record_event(
+    activity,
+    time=datetime.now(),
+    data_path=DEFAULT_CONFIG.data_folder
+):
+    with open(data_path + time.strftime('%Y-%m') + '.csv', mode='a') as file:
+        file.write(','.join([activity, time]))
 
 
 def _parse_args(args):
