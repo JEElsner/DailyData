@@ -1,8 +1,10 @@
 import sys
 import argparse
-from datetime import datetime
+from datetime import datetime, timedelta
 from dataclasses import dataclass
 from pathlib import Path
+
+import pandas as pd
 
 
 @dataclass
@@ -35,7 +37,7 @@ def main(argv=sys.argv[1:]):
             activity=args.event,
             time=datetime.now().strftime('%H:%M')))
     elif args.list:
-        pass
+        print(get_activity_times(data_path='./events/2020-12.csv'))
 
 
 def record_event(
@@ -45,6 +47,43 @@ def record_event(
 ):
     with open(data_path + time.strftime('%Y-%m') + '.csv', mode='a') as file:
         file.write(','.join([activity, str(time), '\n']))
+
+
+def get_activity_times(data_path=DEFAULT_CONFIG.data_folder, max_time=timedelta(hours=1)):
+    activity_time = {}
+
+    for csv_path in Path(data_path).glob('*.csv'):
+        with open(csv_path) as file:
+            df = pd.read_csv(file, names=['name', 'time'], usecols=[0, 1])
+            df['time'] = pd.to_datetime(df['time'])
+
+            try:
+                activity_iter = df.itertuples()
+                activity = next(activity_iter)
+                next_activity = next(activity_iter)
+
+                while True:
+                    time = next_activity.time - activity.time
+
+                    if time > max_time:
+                        time = max_time
+
+                    if activity.name not in activity_time:
+                        activity_time.update({activity.name: time})
+                    else:
+                        activity_time[activity.name] += time
+
+                    activity = next_activity
+                    next_activity = next(activity_iter)
+            except StopIteration:
+                pass
+
+    times = pd.DataFrame.from_dict(
+        activity_time, orient='index', columns=['time'])
+
+    times['percent'] = times['time'] / times['time'].sum()
+
+    return times
 
 
 def _parse_args(args):
@@ -67,4 +106,4 @@ def _parse_args(args):
 
 
 if __name__ == '__main__':
-    main()
+    print(get_activity_times())
