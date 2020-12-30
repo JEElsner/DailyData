@@ -180,4 +180,5 @@ $RECYCLE.BIN/
 
 .vscode/
 data/
+events/
 *.docx
