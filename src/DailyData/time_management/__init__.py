@@ -1,4 +1,5 @@
 import sys
+import argparse
 from datetime import datetime
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,16 +14,28 @@ DEFAULT_CONFIG = Configuration(data_folder='./events/')
 
 
 def main(argv=sys.argv[1:]):
-    if len(argv) == 0:
-        # we need to print help
-        pass
-    else:
-        args, kwargs = _parse_args(argv)
+    parser = argparse.ArgumentParser()
 
-        record_event(args[0])
+    subparsers = parser.add_subparsers()
+
+    parser_doing = subparsers.add_parser('doing',
+                                         help='Record an activity')
+
+    parser_doing.add_argument('event', help='The event you are recording')
+
+    parser.add_argument('-l', '--list',
+                        action='store_true',
+                        help='List the activities recorded',)
+
+    args = parser.parse_args(argv)
+
+    if not args.list:
+        record_event(args.event)
         print('Recorded doing {activity} at {time}'.format(
-            activity=args[0],
+            activity=args.event,
             time=datetime.now().strftime('%H:%M')))
+    elif args.list:
+        pass
 
 
 def record_event(
