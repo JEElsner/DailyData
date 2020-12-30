@@ -26,7 +26,7 @@ class TestCompileJournal(unittest.TestCase):
         self.assertSetEqual(set(order), {'a', 'b', 'c', 'd', 'e'})
 
     def test_save_common_words(self):
-        file_path = './tests/test_include_output.json'
+        file_path = './tests/analyzer/test_include_output.json'
 
         order = ['a', 'b', 'c']
         counts = {'a': 3, 'b': 2, 'c': 1}
@@ -41,15 +41,15 @@ class TestCompileJournal(unittest.TestCase):
                 output, {w: {'count': counts[w], 'include': False} for w in order})
 
     def test_ignore_words_load(self):
-        file_path = './tests/test_include_input.json'
+        file_path = './tests/analyzer/test_include_input.json'
 
         self.assertSetEqual(
             set(compile_journal.load_ignore_words(file_path)), {'a', 'c'})
 
     def test_load_journal(self):
         path = './tests/sample_journal.docx'
-        out = './sample_journal_data_output.xlsx'
-        count_file = './sample_journal_word_count_output.json'
+        out = './analyzer/sample_journal_data_output.xlsx'
+        count_file = './analyzer/sample_journal_word_count_output.json'
 
         compile_journal.load_journal_entries(
             journal_path=path,
@@ -58,8 +58,8 @@ class TestCompileJournal(unittest.TestCase):
         )
 
         # Make sure the files were created
-        open('./tests/sample_journal_data_output.xlsx', mode='r').close()
-        open('./tests/sample_journal_word_count_output.json', mode='r').close()
+        open('./tests/analyzer/sample_journal_data_output.xlsx', mode='r').close()
+        open('./tests/analyzer/sample_journal_word_count_output.json', mode='r').close()
 
 
 if __name__ == '__main__':
