@@ -37,7 +37,8 @@ def main(argv=sys.argv[1:]):
             activity=args.event,
             time=datetime.now().strftime('%H:%M')))
     elif args.list:
-        print(get_activity_times(data_path='./events/2020-12.csv'))
+        print(get_activity_times()
+              .to_string(float_format=lambda s: '{:.2f}'.format(s*100)))
 
 
 def record_event(
@@ -49,7 +50,7 @@ def record_event(
         file.write(','.join([activity, str(time), '\n']))
 
 
-def get_activity_times(data_path=DEFAULT_CONFIG.data_folder, max_time=timedelta(hours=1)):
+def get_activity_times(data_path=DEFAULT_CONFIG.data_folder, max_time=timedelta(hours=1)) -> pd.DataFrame:
     activity_time = {}
 
     for csv_path in Path(data_path).glob('*.csv'):
