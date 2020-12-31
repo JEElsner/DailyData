@@ -15,7 +15,7 @@ from os import path, system
 from pathlib import Path as PathObject
 from sys import argv
 
-from ConsoleQuestionPrompts import questions
+import ConsoleQuestionPrompts as questions
 from DailyData.analyzer import parse_docx
 
 # The path to the configuration JSON file containing all of the settings and
