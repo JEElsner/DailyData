@@ -17,5 +17,6 @@ setup(
         'console_scripts': [
             'timelog=DailyData.time_management:main'
         ]
-    }
+    },
+    include_package_data=True
 )
