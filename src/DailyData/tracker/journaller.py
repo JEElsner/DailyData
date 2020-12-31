@@ -18,34 +18,28 @@ from sys import argv
 import ConsoleQuestionPrompts as questions
 from DailyData.analyzer import parse_docx
 
-# The path to the configuration JSON file containing all of the settings and
-# questions
-if len(argv) > 1:
-    config_file = argv[1]
-else:
-    config_file = './journaler_config.json'
+from DailyData import config
 
-# Load the config file and parse the settings
-with open(config_file, 'r') as file:
-    cfg = json.load(file)
 
-    # Prepend act_ for 'activity' to each activity question header.
-    # This is done to reduce the possibility of duplicates and make it more
-    # clear what those columns represent.
-    cfg['activity_questions'] = {'act_{e}'.format(e=k):
-                                 'Did you {activity} today?'.format(
-                                     activity=v)
-                                 for k, v in cfg['activity_questions'].items()}
+# Prepend act_ for 'activity' to each activity question header.
+# This is done to reduce the possibility of duplicates and make it more
+# clear what those columns represent.
+activity_questions = {'act_{e}'.format(e=k):
+                      'Did you {activity} today?'.format(
+    activity=v)
+    for k, v in config.tracker.activity_questions.items()}
 
-    # Add all activity and event columns to the master list of columns
-    cfg['columns'] += list(cfg['activity_questions'].keys())
+# Add all activity and event columns to the master list of columns
+columns = config.tracker.columns + \
+    list(activity_questions.keys())
 
-    # Check for duplicate column names
-    if len(set(cfg['columns'])) != len(cfg['columns']):
-        raise ValueError('Duplicate column names')
+# Check for duplicate column names
+if len(set(columns)) != len(columns):
+    raise ValueError('Duplicate column names')
 
 # Construct the path to the CSV file that will store today's entry
-data_file = cfg['data_folder'] + str(date.today().year) + cfg['data_suffix']
+data_file = config.tracker.data_folder + \
+    str(date.today().year) + config.tracker.data_suffix
 
 # Get the timezone for later recording
 timezone = datetime.now().astimezone().tzinfo
@@ -60,23 +54,24 @@ def main():
     # Verify data file exists, and create it if it doesn't
     if not path.exists(data_file):
         # Verify that parent folder of data file exists, or create it
-        if not path.exists(cfg['data_folder']):
-            os.makedirs(cfg['data_folder'])
+        if not path.exists(config.tracker.data_folder):
+            os.makedirs(config.tracker.data_folder)
 
         # Create data file
         with open(data_file, 'w') as f:
-            f.write(cfg['delimiter'].join(cfg['columns']) + '\n')
+            f.write(config.tracker.delimiter.join(
+                columns) + '\n')
 
     with open(data_file, mode='r+') as file:
         try:
             # Read in the headers to verify they match the data about to be
             # recorded.
-            headers = next(file).strip().split(cfg['delimiter'])
+            headers = next(file).strip().split(config.tracker.delimiter)
 
             # Make sure the headers match the data recorded
-            if headers != cfg['columns']:
+            if headers != columns:
                 raise ValueError(
-                    'File columns do not match recording columns:\nFile: {f}\nExpected: {e}'.format(f=headers, e=cfg['columns']))
+                    'File columns do not match recording columns:\nFile: {f}\nExpected: {e}'.format(f=headers, e=columns))
         except StopIteration:
             pass
 
@@ -84,18 +79,18 @@ def main():
         entry = record()
 
         # Make sure the kind of data recieved from the user matches what is expected
-        if list(entry.keys()) != cfg['columns']:
+        if list(entry.keys()) != columns:
             raise ValueError(
-                'Recorded information does not match expected data columns\nRecorded: {r}\nExpected: {e}'.format(r=entry.keys(), e=cfg['columns']))
+                'Recorded information does not match expected data columns\nRecorded: {r}\nExpected: {e}'.format(r=entry.keys(), e=columns))
 
         # Start the journalling program
-        if cfg['journal']:
+        if config.tracker.open_journal:
             time = open_journal(entry['journal_day'])
             entry['journal_time'] = time.total_seconds()
 
         # Write today's data to the file
-        file.write(cfg['delimiter'].join([str(i)
-                                          for i in entry.values()]) + '\n')
+        file.write(config.tracker.delimiter.join([str(i)
+                                                  for i in entry.values()]) + '\n')
 
 
 def record():
@@ -109,11 +104,11 @@ def record():
     '''
 
     # Create the dictionary storing the responses
-    entry = {c: None for c in cfg['columns']}
+    entry = {c: None for c in columns}
 
     # Greet the user
     # Kindness counts :)
-    print(cfg['greeting'], cfg['name'] + '!')
+    print(config.tracker.greeting, config.tracker.name + '!')
 
     # Verify the date, and allow the user to change it
     # This is useful if the user is journalling after midnight, and wants the
@@ -140,7 +135,7 @@ def record():
 
     # Sanitization function to ensure properly-formed delimited files
     def sanitize(s: str) -> str:
-        return s.replace(cfg['delimiter'], '')
+        return s.replace(config.tracker.delimiter, '')
 
     # Ask the question about the date
     entry['journal_day'] = questions.ask_question(prompt, in_bounds=lambda x: x is not None,
@@ -196,8 +191,8 @@ def record():
     entry['score'] = questions.range_question(prompt)
 
     # Ask the user a subset of several questions and record their responses
-    entry.update(questions.ask_some(cfg['activity_questions'],
-                                    cfg['activity_questions_count']))
+    entry.update(questions.ask_some(activity_questions,
+                                    config.tracker.activity_questions_count))
 
     # Allow the user a little more freedom in expressing the quality of their day
     prompt = 'Input any keywords for today. For example, things that happened today.\n> '
@@ -223,11 +218,12 @@ def open_journal(date: date, create_file=parse_docx.new_doc, header_func=parse_d
     '''
 
     # Construct the path to the journal file
-    journal_path = cfg['journal_folder'] + \
-        date.strftime('%Y-%m') + cfg['journal_suffix']
+    journal_path = config.tracker.journal_folder + \
+        date.strftime('%Y-%m') + config.tracker.journal_suffix
 
     # Create the file if it does not exist
-    PathObject(cfg['journal_folder']).mkdir(parents=True, exist_ok=True)
+    PathObject(config.tracker.journal_folder).mkdir(
+        parents=True, exist_ok=True)
     if not path.exists(journal_path):
         create_file(journal_path)
 

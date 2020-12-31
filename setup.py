@@ -12,5 +12,6 @@ setup(
     name='DailyData',
     packages=find_packages(where='src'),
     package_dir={'': 'src'},  # Specify that the package is in the 'src' folder
-    install_requires=['ConsoleQuestionPrompts', 'python-docx']
+    install_requires=['ConsoleQuestionPrompts', 'python-docx'],
+    include_package_data=True
 )
