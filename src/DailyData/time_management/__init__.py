@@ -12,7 +12,7 @@ class Configuration:
     data_folder: str
 
 
-DEFAULT_CONFIG = Configuration(data_folder='./events/')
+DEFAULT_CONFIG = Configuration(data_folder='./data/activities/')
 
 
 def main(argv=sys.argv[1:]):
