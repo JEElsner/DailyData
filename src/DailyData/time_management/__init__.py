@@ -25,17 +25,24 @@ def main(argv=sys.argv[1:]):
 
     parser_doing.add_argument('event', help='The event you are recording')
 
+    parser_doing.add_argument('-n', '--new',
+                              action='store_true',
+                              help='Add a new activity to track')
+
     parser.add_argument('-l', '--list',
                         action='store_true',
-                        help='List the activities recorded',)
+                        help='List the activities recorded')
 
     args = parser.parse_args(argv)
 
     if not args.list:
-        record_event(args.event)
-        print('Recorded doing {activity} at {time}'.format(
-            activity=args.event,
-            time=datetime.now().strftime('%H:%M')))
+        if record_event(args.event, new=args.new):
+            print('Recorded doing {activity} at {time}'.format(
+                activity=args.event,
+                time=datetime.now().strftime('%H:%M')))
+        else:
+            print(
+                'Unknown activity \'{0}\', did not record.\nUse [-n] if you want to add a new activity.'.format(args.event))
     elif args.list:
         print(get_activity_times()
               .to_string(float_format=lambda s: '{:.2f}'.format(s*100)))
@@ -44,10 +51,19 @@ def main(argv=sys.argv[1:]):
 def record_event(
     activity,
     time=datetime.now(),
-    data_path=DEFAULT_CONFIG.data_folder
-):
+    data_path=DEFAULT_CONFIG.data_folder,
+    new=False
+) -> bool:
+    with open(data_path + 'list.txt', mode='r+') as act_list:
+        if not new and (activity + '\n') not in act_list:
+            return False
+        elif new:
+            act_list.write(activity + '\n')
+
     with open(data_path + time.strftime('%Y-%m') + '.csv', mode='a') as file:
         file.write(','.join([activity, str(time), '\n']))
+
+    return True
 
 
 def get_activity_times(data_path=DEFAULT_CONFIG.data_folder, max_time=timedelta(hours=1)) -> pd.DataFrame:
