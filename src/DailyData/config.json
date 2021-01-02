@@ -2,6 +2,9 @@
     "configured": false,
     "data_folder": "",
     "analyzer": {},
+    "time_management": {
+        "activity_folder": "./activities/"
+    },
     "tracker": {
         "name": "Jonathan",
         "greeting": "Heyo",
