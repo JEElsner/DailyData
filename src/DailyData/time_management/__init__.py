@@ -66,7 +66,7 @@ def record_event(
     return True
 
 
-def get_activity_times(data_path=DEFAULT_CONFIG.data_folder, max_time=timedelta(hours=1)) -> pd.DataFrame:
+def get_activity_times(data_path=DEFAULT_CONFIG.data_folder, max_time=timedelta(hours=12)) -> pd.DataFrame:
     activity_time = {}
 
     for csv_path in Path(data_path).glob('*.csv'):
@@ -83,7 +83,7 @@ def get_activity_times(data_path=DEFAULT_CONFIG.data_folder, max_time=timedelta(
                     time = next_activity.time - activity.time
 
                     if time > max_time:
-                        time = max_time
+                        time = 0
 
                     if activity.name not in activity_time:
                         activity_time.update({activity.name: time})
