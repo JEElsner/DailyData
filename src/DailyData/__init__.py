@@ -50,6 +50,6 @@ else:
         **json.loads(pkg_resources.resource_string(__name__, 'config.json')))
 
 
-if not config.configured:
+if not config.configured and '--config-file' not in __argv:
     raise ValueError(
         'DailyData not configured! Edit the file at \'dailydata --config-file\' to configure this module')
