@@ -18,11 +18,13 @@ from sys import argv
 import ConsoleQuestionPrompts as questions
 from DailyData.analyzer import parse_docx
 
+from .. import tracker
+
 
 class Journaller:
 
     def __init__(self, tracker_cfg):
-        self.cfg = tracker_cfg
+        self.cfg: tracker.Configuration = tracker_cfg
 
         # Prepend act_ for 'activity' to each activity question header.
         # This is done to reduce the possibility of duplicates and make it more
@@ -218,11 +220,11 @@ class Journaller:
         '''
 
         # Construct the path to the journal file
-        journal_path = self.cfg.journal_folder + \
-            date.strftime('%Y-%m') + self.cfg.journal_suffix
+        journal_path = self.cfg.journal_folder.joinpath(
+            date.strftime('%Y-%m') + self.cfg.journal_suffix)
 
         # Create the file if it does not exist
-        PathObject(self.cfg.journal_folder).mkdir(
+        self.cfg.journal_folder.mkdir(
             parents=True, exist_ok=True)
         if not path.exists(journal_path):
             create_file(journal_path)
@@ -234,7 +236,7 @@ class Journaller:
         start = datetime.now()
 
         # Open the journal file with the associated program in the OS
-        system('start /WAIT ' + journal_path)
+        system('start /WAIT ' + str(journal_path.absolute()))
 
         # Return the duration of time the user spent editing their journal
         return datetime.now() - start
