@@ -5,7 +5,7 @@ with open('README.md', 'r', encoding='utf-8') as readme:
 
 setup(
     name='DailyData',
-    version='0.0.1',
+    version='0.0.1post',
     author='Jonathan Elsner',
     author_email='jeelsner@outlook.com',
     description='A package for recording and reviewing data about your day',
