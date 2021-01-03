@@ -29,4 +29,4 @@ def take_args(argv=sys.argv[1:]):
 
 
 if __name__ == "__main__":
-    take_args(['--config_file'])
+    take_args()

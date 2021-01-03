@@ -6,8 +6,8 @@
         "activity_folder": "./activities/"
     },
     "tracker": {
-        "name": "Jonathan",
-        "greeting": "Heyo",
+        "name": "",
+        "greeting": "",
         "open_journal": false,
         "journal_folder": "./journals/",
         "journal_suffix": ".docx",

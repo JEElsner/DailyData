@@ -12,6 +12,8 @@ from . import time_management as time_management_pkg
 
 from .__main__ import take_args
 
+from sys import argv as __argv
+
 
 @dataclass
 class Configuration:
@@ -34,6 +36,20 @@ class Configuration:
             **self.tracker)
 
 
-# TODO change to importlib instead of pkg_resources
-config = Configuration(
-    **json.loads(pkg_resources.resource_string(__name__, 'config.json')))
+if '--use-config' in __argv:
+    __i = __argv.index('--use-config')
+
+    with open(__argv[__i+1], mode='r') as cfg_file:
+        config = Configuration(**json.load(cfg_file))
+
+    del __argv[__i+1]
+    __argv.remove('--use-config')
+else:
+    # TODO change to importlib instead of pkg_resources
+    config = Configuration(
+        **json.loads(pkg_resources.resource_string(__name__, 'config.json')))
+
+
+if not config.configured:
+    raise ValueError(
+        'DailyData not configured! Edit the file at \'dailydata --config-file\' to configure this module')
