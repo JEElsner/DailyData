@@ -10,6 +10,8 @@ from . import analyzer as analyzer_pkg
 from . import tracker as tracker_pkg
 from . import time_management as time_management_pkg
 
+from .__main__ import take_args
+
 
 @dataclass
 class Configuration:
