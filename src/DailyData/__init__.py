@@ -34,5 +34,6 @@ class Configuration:
             **self.tracker)
 
 
+# TODO change to importlib instead of pkg_resources
 config = Configuration(
     **json.loads(pkg_resources.resource_string(__name__, 'config.json')))

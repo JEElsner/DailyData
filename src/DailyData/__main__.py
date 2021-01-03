@@ -3,6 +3,8 @@ import argparse
 from importlib import resources
 import pathlib
 
+# TODO unify packages into one command
+
 
 def take_args(argv=sys.argv[1:]):
     parser = argparse.ArgumentParser()
