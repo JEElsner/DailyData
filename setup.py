@@ -15,7 +15,7 @@ setup(
     install_requires=['ConsoleQuestionPrompts', 'python-docx'],
     entry_points={
         'console_scripts': [
-            'timelog=DailyData.time_management:main'
+            'timelog=DailyData.time_management:timelog_entry_point'
         ]
     },
     include_package_data=True

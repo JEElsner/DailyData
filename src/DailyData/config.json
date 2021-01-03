@@ -1,6 +1,6 @@
 {
     "configured": false,
-    "data_folder": "",
+    "data_folder": "./data",
     "analyzer": {},
     "time_management": {
         "activity_folder": "./activities/"
@@ -11,7 +11,7 @@
         "open_journal": false,
         "journal_folder": "./journals/",
         "journal_suffix": ".docx",
-        "data_folder": "./data/",
+        "stats_folder": "./journal_stats/",
         "data_suffix": ".bsv",
         "delimiter": "`",
         "columns": [
