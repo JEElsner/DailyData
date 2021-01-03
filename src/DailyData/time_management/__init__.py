@@ -62,16 +62,17 @@ class Timelog:
         time=datetime.now(),
         new=False
     ) -> bool:
-        try:
-            with open(self.cfg.activity_folder.joinpath('list.txt'), mode='r+') as act_list:
-                if not new and (activity + '\n') not in act_list:
-                    return False
-                elif new:
-                    act_list.write(activity + '\n')
-        except FileNotFoundError:
-            open(self.cfg.activity_folder.joinpath(
-                'list.txt'), mode='w').close()
-            return False
+        act_list_path = self.cfg.activity_folder.joinpath('list.txt')
+
+        if not act_list_path.exists():
+            open(act_list_path, mode='w').close()
+
+        with open(act_list_path, mode='r+') as act_list:
+            if not new and (activity + '\n') not in act_list:
+                return False
+            elif new:
+                act_list.seek(0, 2)
+                act_list.write(activity + '\n')
 
         with open(self.cfg.activity_folder.joinpath(time.strftime('%Y-%m') + '.csv'), mode='a') as file:
             file.write(','.join([activity, str(time), '\n']))
