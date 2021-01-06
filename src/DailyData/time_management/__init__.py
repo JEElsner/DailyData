@@ -96,7 +96,7 @@ class Timelog:
                         time = next_activity.time - activity.time
 
                         if time > max_time:
-                            time = 0
+                            time = timedelta(0)
 
                         if activity.name not in activity_time:
                             activity_time.update({activity.name: time})
@@ -112,6 +112,7 @@ class Timelog:
             activity_time, orient='index', columns=['time'])
 
         times['percent'] = times['time'] / times['time'].sum()
+        times.sort_values(by=['time'], ascending=False, inplace=True)
 
         return times
 
