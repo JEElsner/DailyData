@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import time
-import pkg_resources
+from importlib import resources
 from pathlib import Path
 import json
 
@@ -47,7 +47,7 @@ if '--use-config' in __argv:
 else:
     # TODO change to importlib instead of pkg_resources
     config = Configuration(
-        **json.loads(pkg_resources.resource_string(__name__, 'config.json')))
+        **json.loads(resources.read_text(__name__, 'config.json')))
 
 
 if not config.configured and '--config-file' not in __argv:
