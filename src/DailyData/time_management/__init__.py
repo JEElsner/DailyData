@@ -93,7 +93,11 @@ class Timelog:
                     next_activity = next(activity_iter)
 
                     while True:
-                        time = next_activity.time - activity.time
+                        time: timedelta = next_activity.time - activity.time
+
+                        # Remove the microseconds because they're annoying to
+                        # look at
+                        time = time - timedelta(microseconds=time.microseconds)
 
                         if time > max_time:
                             time = timedelta(0)
