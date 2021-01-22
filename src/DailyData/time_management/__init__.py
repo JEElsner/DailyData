@@ -119,6 +119,10 @@ class Timelog:
             activity_time, orient='index', columns=['time'])
 
         times['percent'] = times['time'] / times['time'].sum()
+
+        times['per_day'] = times['percent'] * timedelta(days=1)
+        times['per_day'] = times['per_day'].apply(
+            lambda td: td - timedelta(microseconds=td.microseconds))
         times.sort_values(by=['time'], ascending=False, inplace=True)
 
         return times
