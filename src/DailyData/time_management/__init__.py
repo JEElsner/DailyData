@@ -42,6 +42,9 @@ class Timelog:
                             action='store_true',
                             help='List the activities recorded')
 
+        parser.add_argument('-n',
+                            type=int, default=10)
+
         args = parser.parse_args(argv)
 
         if not args.list:
@@ -53,7 +56,7 @@ class Timelog:
                 print(
                     'Unknown activity \'{0}\', did not record.\nUse [-n] if you want to add a new activity.'.format(args.event))
         elif args.list:
-            print(self.get_activity_times()
+            print(self.get_activity_times().head(args.n)
                   .to_string(float_format=lambda s: '{:.2f}'.format(s*100)))
 
     def record_event(
