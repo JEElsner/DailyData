@@ -102,7 +102,7 @@ class Timelog:
                         # look at
                         time = time - timedelta(microseconds=time.microseconds)
 
-                        if time > max_time:
+                        if not (timedelta(0) < time <= max_time):
                             time = timedelta(0)
 
                         if activity.name not in activity_time:
