@@ -4,6 +4,7 @@ from importlib import resources
 
 from . import tracker
 from . import time_management
+from .config import cfg_file_location
 
 
 def take_args(argv=sys.argv[1:]):
@@ -20,8 +21,7 @@ def take_args(argv=sys.argv[1:]):
     args = parser.parse_args(argv)
 
     if args.config_file:
-        with resources.path(__package__, 'config.json') as cfg_path:
-            print(cfg_path.absolute())
+        print(str(cfg_file_location))
     elif args.journal:
         tracker.Journaller(config.tracker).record_and_write_to_file()
     else:

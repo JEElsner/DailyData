@@ -39,6 +39,8 @@ class Configuration:
 
 
 def load_config(cfg_file: Path = None):
+    global cfg_file_location
+
     if cfg_file is not None:
         cfg_file_location = cfg_file
         return Configuration(**json.load(cfg_file))
