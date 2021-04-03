@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from dataclasses import field
 from pathlib import Path
 from typing import List, Dict
 
@@ -9,13 +10,13 @@ from .journaller import Journaller
 
 @dataclass
 class Configuration:
-    data_folder: Path
+    data_folder: Path = './data'
 
-    name: str
-    journal_suffix: str
-    columns: List[str]
-    activity_questions_count: int
-    activity_questions: Dict[str, str]
+    name: str = None
+    journal_suffix: str = '.md'
+    columns: List[str] = field(default_factory=list)
+    activity_questions_count: int = 0
+    activity_questions: Dict[str, str] = field(default_factory=dict)
     greeting: str = 'Heyo'
     open_journal: bool = False
     journal_folder: Path = Path('.\\journals\\')
