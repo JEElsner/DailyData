@@ -1,13 +1,12 @@
-from dataclasses import dataclass
-from pathlib import Path
-
-from .analyzer import AnalyzerConfig
-from .time_management import TimeManagementConfig
-from .tracker import TrackerConfig
-
-from importlib import resources
 import json
 import os
+from dataclasses import dataclass
+from importlib import resources
+from pathlib import Path
+
+from .analyzer.config import AnalyzerConfig
+from .time_management.config import TimeManagementConfig
+from .tracker.config import TrackerConfig
 
 cfg_file_location = None
 
