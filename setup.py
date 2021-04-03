@@ -18,7 +18,7 @@ setup(
                       'python-docx', 'pandas', 'numpy'],
     entry_points={
         'console_scripts': [
-            'timelog=DailyData.time_management:timelog_entry_point',
+            'timelog=DailyData.time_management.timelog:timelog_entry_point',
             'dailydata=DailyData.__main__:take_args'
         ]
     },
