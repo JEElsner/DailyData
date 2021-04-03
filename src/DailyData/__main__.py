@@ -4,7 +4,9 @@ from importlib import resources
 
 from . import tracker
 from . import time_management
-from .config import cfg_file_location
+from .config import cfg_file_location, load_config
+
+from pathlib import Path
 
 
 def take_args(argv=sys.argv[1:]):
@@ -12,13 +14,19 @@ def take_args(argv=sys.argv[1:]):
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--config-file', action='store_true',
+    parser.add_argument('-config-file', action='store_true',
                         help='Print the location of the configuration file. This can be piped to a text editor to edit it.')
 
     parser.add_argument('-j', '--journal', action='store_true',
                         help='Create a new journal entry')
 
+    parser.add_argument(
+        '--use-config', help='Specify the config file to load and use')
+
     args = parser.parse_args(argv)
+
+    if args.use_config is not None:
+        config = load_config(Path(args.use_config))
 
     if args.config_file:
         print(str(cfg_file_location))

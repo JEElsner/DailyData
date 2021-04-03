@@ -43,7 +43,7 @@ def load_config(cfg_file: Path = None):
 
     if cfg_file is not None:
         cfg_file_location = cfg_file
-        return Configuration(**json.load(cfg_file))
+        return Configuration(**json.load(cfg_file.open()))
 
     cwd_config = Path(os.getcwd()).joinpath('config.json')
     usr_config = Path.home().joinpath('.dailydata_config.json')
