@@ -24,7 +24,7 @@ from .. import tracker
 class Journaller:
 
     def __init__(self, tracker_cfg):
-        self.cfg: tracker.Configuration = tracker_cfg
+        self.cfg: tracker.TrackerConfig = tracker_cfg
 
         # Prepend act_ for 'activity' to each activity question header.
         # This is done to reduce the possibility of duplicates and make it more

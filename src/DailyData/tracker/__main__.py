@@ -1,7 +1,7 @@
 from sys import argv
 
-from .. import config
+from .. import master_config
 from . import Journaller
 
 
-Journaller(config.tracker).record_and_write_to_file()
+Journaller(master_config.tracker).record_and_write_to_file()

@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 def take_args(argv=sys.argv[1:]):
-    from . import config
+    from . import master_config
 
     parser = argparse.ArgumentParser()
 
@@ -26,12 +26,12 @@ def take_args(argv=sys.argv[1:]):
     args = parser.parse_args(argv)
 
     if args.use_config is not None:
-        config = load_config(Path(args.use_config))
+        master_config = load_config(Path(args.use_config))
 
     if args.config_file:
         print(str(cfg_file_location))
     elif args.journal:
-        tracker.Journaller(config.tracker).record_and_write_to_file()
+        tracker.Journaller(master_config.tracker).record_and_write_to_file()
     else:
         parser.print_help()
 

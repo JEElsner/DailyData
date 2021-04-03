@@ -4,11 +4,11 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 
-from .config import Configuration
+from .config import TimeManagementConfig
 
 
 class Timelog:
-    def __init__(self, time_management_cfg: Configuration):
+    def __init__(self, time_management_cfg: TimeManagementConfig):
         self.cfg = time_management_cfg
 
         if not self.cfg.activity_folder.exists():
@@ -119,10 +119,10 @@ class Timelog:
 
 
 def timelog_entry_point():
-    from .. import config
+    from .. import master_config
 
-    Timelog(config.time_management).take_args()
+    Timelog(master_config.time_management).take_args()
 
 
 if __name__ == '__main__':
-    print(Timelog(Configuration()).get_activity_times())
+    print(Timelog(TimeManagementConfig()).get_activity_times())

@@ -9,7 +9,7 @@ from .journaller import Journaller
 
 
 @dataclass
-class Configuration:
+class TrackerConfig:
     data_folder: Path = './data'
 
     name: str = None

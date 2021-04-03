@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 @dataclass
-class Configuration:
+class TimeManagementConfig:
     data_folder: Path = Path('./data')
     activity_folder: Path = Path('./activities')
 
