@@ -19,7 +19,7 @@ setup(
     entry_points={
         'console_scripts': [
             'timelog=DailyData.time_management:timelog_entry_point',
-            'dailydata=DailyData:take_args'
+            'dailydata=DailyData.__main__:take_args'
         ]
     },
     include_package_data=True,
