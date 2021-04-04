@@ -26,15 +26,10 @@ class MasterConfig:
             self.analyzer = AnalyzerConfig(**self.analyzer)
 
         if not isinstance(self.time_management, TimeManagementConfig):
-            self.time_management = TimeManagementConfig(
-                data_folder=self.data_folder,
-                **self.time_management
-            )
+            self.time_management = TimeManagementConfig(**self.time_management)
 
         if not isinstance(self.tracker, TrackerConfig):
-            self.tracker = TrackerConfig(
-                data_folder=self.data_folder,
-                **self.tracker)
+            self.tracker = TrackerConfig(**self.tracker)
 
     def __enter__(self):
         pass

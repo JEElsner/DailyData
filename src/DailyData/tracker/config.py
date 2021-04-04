@@ -6,8 +6,6 @@ from typing import List, Dict
 
 @dataclass
 class TrackerConfig:
-    data_folder: Path = './data'
-
     name: str = None
     journal_suffix: str = '.md'
     columns: List[str] = field(default_factory=list)
@@ -15,13 +13,11 @@ class TrackerConfig:
     activity_questions: Dict[str, str] = field(default_factory=dict)
     greeting: str = 'Heyo'
     open_journal: bool = False
-    journal_folder: Path = Path('.\\journals\\')
-    stats_folder: Path = Path('.\\journal_stats\\')
+    journal_folder: Path = Path('./data/journals')
+    stats_folder: Path = Path('./data/journal_stats')
     data_suffix: str = '.csv'
     delimiter: str = ','
 
     def __post_init__(self):
-        self.data_folder = Path(self.data_folder)
-
-        self.journal_folder = self.data_folder.joinpath(self.journal_folder)
-        self.stats_folder = self.data_folder.joinpath(self.stats_folder)
+        self.journal_folder = Path(self.journal_folder)
+        self.stats_folder = Path(self.stats_folder)
