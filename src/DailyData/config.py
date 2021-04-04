@@ -64,7 +64,7 @@ def load_config(cfg_file: Path = None):
         return MasterConfig(**json.load(usr_config.open()))
     else:
         # Create default configuration if one doesn't exist
-        cfg_file_location = cwd_config
+        cfg_file_location = usr_config
         return initial_setup()
 
 
@@ -93,7 +93,7 @@ def initial_setup(current: MasterConfig = MasterConfig(), first_time=True) -> Ma
 
         global cfg_file_location
 
-        cfg_file_location = questions.option_question('Where would you like this configuration to be saved?',
+        cfg_file_location = questions.option_question('Where would you like this configuration to be saved? (Default: user directory)',
                                                       options=[
                                                           'In the user directory',
                                                           'In the current working directory',
