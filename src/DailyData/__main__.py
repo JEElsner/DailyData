@@ -31,7 +31,9 @@ def take_args(argv=sys.argv[1:]):
     if args.config_file:
         print(str(cfg_file_location))
     elif args.journal:
-        tracker.Journaller(master_config.tracker).record_and_write_to_file()
+        with master_config:
+            tracker.Journaller(
+                master_config.tracker).record_and_write_to_file()
     else:
         parser.print_help()
 

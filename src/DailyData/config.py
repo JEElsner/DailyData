@@ -1,6 +1,6 @@
 import json
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from importlib import resources
 from pathlib import Path
 
@@ -36,6 +36,12 @@ class MasterConfig:
                 data_folder=self.data_folder,
                 **self.tracker)
 
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exception_type: BaseException, exception: Exception, traceback):
+        save_config(self, cfg_file_location)
+
 
 def load_config(cfg_file: Path = None):
     global cfg_file_location
@@ -66,7 +72,16 @@ def load_config(cfg_file: Path = None):
 
 
 def save_config(config: MasterConfig, save_location: Path = None):
-    if save_location is not None:
-        json.dump(config, save_location.open())
-    else:
-        json.dump(config, cfg_file_location.open())
+    if save_location is None:
+        save_location = cfg_file_location
+
+    # if not save_location.parent.exists():
+    #     save_location.parent.mkdir()
+
+    json.dump(asdict(config), save_location.open(mode='w'),
+              indent='\t', default=__non_serializable_parser)
+
+
+def __non_serializable_parser(value):
+    if isinstance(value, Path):
+        return str(value.absolute())

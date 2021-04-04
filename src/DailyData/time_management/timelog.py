@@ -124,7 +124,8 @@ def get_activity_times(activity_folder: Path, max_time=timedelta(hours=12)) -> p
 def timelog_entry_point():
     from .. import master_config
 
-    take_args(master_config.time_management)
+    with master_config:
+        take_args(master_config.time_management)
 
 
 if __name__ == '__main__':
