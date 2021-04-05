@@ -182,3 +182,4 @@ $RECYCLE.BIN/
 data/
 *.docx
 tests/test_config.json
+config.json
