@@ -1,4 +1,4 @@
-from . import main
-
 if __name__ == '__main__':
-    main()
+    from .timelog import timelog_entry_point
+
+    timelog_entry_point()
