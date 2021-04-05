@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 
 from DailyData import time_management
+from DailyData.config import MasterConfig
 
 from .config import TimeManagementConfig
 
@@ -43,7 +44,7 @@ def take_args(time_manangement_cfg: TimeManagementConfig, argv=sys.argv[1:]):
             print(
                 'Unknown activity \'{0}\', did not record.\nUse [-n] if you want to add a new activity.'.format(args.event))
     elif args.list:
-        print(get_activity_times(time_manangement_cfg.activity_folder).head(args.n)
+        print(get_activity_times(time_manangement_cfg).head(args.n)
               .to_string(float_format=lambda s: '{:.2f}'.format(s*100)))
 
 
@@ -74,11 +75,23 @@ def record_event(
     return True
 
 
-def get_activity_times(activity_folder: Path, max_time=timedelta(hours=12)) -> pd.DataFrame:
+def get_activity_times(time_management_cfg: TimeManagementConfig, max_time=timedelta(hours=12)) -> pd.DataFrame:
     # TODO make max_time a config option
     activity_time = {}
 
-    for csv_path in activity_folder.glob('*.csv'):
+    try:
+        duration = datetime.now() - time_management_cfg.list_duration
+    except OverflowError:
+        duration = datetime.min
+
+    min_date = max(time_management_cfg.list_begin_time, duration)
+    del duration
+
+    for csv_path in time_management_cfg.activity_folder.glob('*.csv'):
+        file_date = datetime.strptime(csv_path.stem, '%Y-%m')
+        if file_date < min_date:
+            continue
+
         with open(csv_path) as file:
             df = pd.read_csv(file, names=['name', 'time'], usecols=[0, 1])
             df['time'] = pd.to_datetime(df['time'])
@@ -95,10 +108,11 @@ def get_activity_times(activity_folder: Path, max_time=timedelta(hours=12)) -> p
                     # look at
                     time = time - timedelta(microseconds=time.microseconds)
 
-                    if not (timedelta(0) < time <= max_time):
-                        time = timedelta(0)
-
-                    if activity.name not in activity_time:
+                    if not (timedelta(seconds=0) < time <= max_time):
+                        time = timedelta(seconds=0)
+                    elif activity.time < min_date:
+                        pass
+                    elif activity.name not in activity_time:
                         activity_time.update({activity.name: time})
                     else:
                         activity_time[activity.name] += time
@@ -131,4 +145,4 @@ def timelog_entry_point():
 if __name__ == '__main__':
     from .. import master_config
 
-    get_activity_times(master_config.time_management.activity_folder)
+    get_activity_times(master_config.time_management)
