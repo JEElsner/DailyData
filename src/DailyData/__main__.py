@@ -14,7 +14,7 @@ def take_args(argv=sys.argv[1:]):
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-config-file', action='store_true',
+    parser.add_argument('--config-file', action='store_true',
                         help='Print the location of the configuration file. This can be piped to a text editor to edit it.')
 
     parser.add_argument('-j', '--journal', action='store_true',
