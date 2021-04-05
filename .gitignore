@@ -183,3 +183,4 @@ data/
 *.docx
 tests/test_config.json
 config.json
+config_backup.json
