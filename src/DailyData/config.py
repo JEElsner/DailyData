@@ -76,12 +76,21 @@ def save_config(config: MasterConfig, save_location: Path = None):
     #     save_location.parent.mkdir()
 
     json.dump(asdict(config), save_location.open(mode='w'),
-              indent='\t', default=__non_serializable_parser)
+              indent='\t', default=__json_encoder)
 
 
-def __non_serializable_parser(value):
+def __json_encoder(value):
+    from datetime import datetime, timedelta
+
     if isinstance(value, Path):
         return str(value.absolute())
+    elif isinstance(value, datetime):
+        return str(value)
+    elif isinstance(value, timedelta):
+        return value.total_seconds()
+    else:
+        raise TypeError(
+            'Object of type {0} is not JSON serializable'.format(type(value)))
 
 
 def initial_setup(current: MasterConfig = MasterConfig(), first_time=True) -> MasterConfig:
