@@ -12,8 +12,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/JEElsner/DailyData/',
-    packages=find_packages(where='src'),
-    package_dir={'': 'src'},  # Specify that the package is in the 'src' folder
+    packages=find_packages(),
     install_requires=['ConsoleQuestionPrompts',
                       'python-docx', 'pandas', 'numpy'],
     entry_points={
