@@ -11,9 +11,11 @@ SCHEMA = 'schema.sql'
 class DatabaseWrapper:
     def __init__(self, folder_path: Path, in_memory=False):
         self.db = sqlite3.connect(folder_path.joinpath('dailydata.db'))
+        self.db.row_factory = sqlite3.Row
 
     def __init__(self):
         self.db = sqlite3.connect(':memory:')
+        self.db.row_factory = sqlite3.Row
 
     def __exit__(self, ex_type, ex_val, ex_tb):
         self.db.close()
@@ -26,9 +28,25 @@ class DatabaseWrapper:
         self.db.execute('INSERT INTO user VALUES (:usr)', {'usr': user})
         self.db.commit()
 
-    def new_activity(self, activity: str):
-        self.db.execute('INSERT INTO activity VALUES (:act)',
-                        {'act': activity})
+    def new_activity(self, activity: str, parent: str = None, is_alias: bool = None):
+
+        if parent is not None:
+            if not self.db.execute('SELECT * FROM activity WHERE name=:parent', {'parent': parent}).fetchone():
+                raise ValueError(
+                    'Parent activity {} does not exist'.format(parent))
+            elif not isinstance(parent, str):
+                raise TypeError('parent must be a string')
+
+        if is_alias is not None and parent is None:
+            raise ValueError(
+                'Activity cannot be an alias if there is no parent')
+        elif is_alias is not None and not isinstance(is_alias, bool):
+            raise TypeError('is_alias must be a boolean')
+
+        self.db.execute('INSERT INTO activity VALUES (:act, :parent, :alias)',
+                        {'act': activity,
+                         'parent': parent,
+                         'alias': is_alias})
         self.db.commit()
 
     def record_time(self, activity: str, user: str, timestamp: datetime = datetime.now()):
@@ -38,12 +56,14 @@ class DatabaseWrapper:
         '''
 
         activity_exists = self.db.execute(
-            'SELECT COUNT(*) FROM activity WHERE name = :activity',
+            'SELECT * FROM activity WHERE name=:activity',
             {'activity': activity}).fetchone()
 
-        if activity_exists[0] < 1:
+        if not activity_exists[0]:
             raise ValueError(
                 'Activity {} not found'.format(activity))
+        elif activity_exists['parent'] is not None and activity_exists['alias']:
+            activity = activity_exists['parent']
 
         self.db.execute(insert_cmd, {
             'time': timestamp.timestamp(),
