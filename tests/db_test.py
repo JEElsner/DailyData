@@ -1,6 +1,6 @@
 import datetime
 import sqlite3
-from DailyData.db import DatabaseWrapper
+from DailyData.io import DatabaseWrapper
 import unittest
 from unittest.mock import MagicMock, Mock, patch
 from pathlib import Path
