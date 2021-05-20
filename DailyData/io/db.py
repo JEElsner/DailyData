@@ -81,5 +81,5 @@ class DatabaseWrapper:
         return self.db.execute(cmd, {'min': earliest.timestamp(), 'max': latest.time()}).fetchall()
 
     def reset(self) -> None:
-        with resources.open_text(package='DailyData.db', resource=SCHEMA, encoding='utf8') as f:
+        with resources.open_text(package='DailyData.io', resource=SCHEMA, encoding='utf8') as f:
             self.db.executescript(f.read())
