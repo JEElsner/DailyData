@@ -10,8 +10,9 @@ CREATE TABLE activity (
 );
 CREATE TABLE timelog (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    time FLOAT NOT NULL,
-    utc_offset INTEGER,
+    time TIMESTAMP NOT NULL,
+    timezone_offset FLOAT,
+    timezone_name TEXT,
     activity TEXT NOT NULL,
     user INTEGER NOT NULL,
     FOREIGN KEY (user) REFERENCES user (username) FOREIGN KEY (activity) REFERENCES activity (name)
