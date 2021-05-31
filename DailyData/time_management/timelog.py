@@ -1,3 +1,5 @@
+from DailyData.io.db import DatabaseWrapper
+from DailyData.io.timelog_io import DebugTimelogIO, TimelogIO
 import sys
 import argparse
 from datetime import datetime, timedelta
@@ -11,17 +13,17 @@ from .config import TimeManagementConfig
 
 from pathlib import Path
 
+from dateutil import tz
 
-def take_args(time_manangement_cfg: TimeManagementConfig, argv=sys.argv[1:]):
+
+def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sys.argv[1:]):
+    # Create the argparser for the timelog command
     parser = argparse.ArgumentParser()
-
     subparsers = parser.add_subparsers()
 
     parser_doing = subparsers.add_parser('doing',
                                          help='Record an activity')
-
     parser_doing.add_argument('event', help='The event you are recording')
-
     parser_doing.add_argument('-n', '--new',
                               action='store_true',
                               help='Add a new activity to track')
@@ -29,120 +31,57 @@ def take_args(time_manangement_cfg: TimeManagementConfig, argv=sys.argv[1:]):
     parser.add_argument('-l', '--list',
                         action='store_true',
                         help='List the activities recorded')
-
     parser.add_argument('-n',
                         type=int, default=10)
 
+    # get and parse the args passed to the method
     args = parser.parse_args(argv)
 
+    # If the user wants to record a time
     if not args.list:
-        if record_event(time_manangement_cfg.activity_folder, args.event, new=args.new):
+        if args.new:
+            io.new_activity(args.event)
+
+        try:
+            io.record_time(args.event, 'default_usr',
+                           timestamp=datetime.utcnow().astimezone(tz.UTC))
             print('Recorded doing {activity} at {time}'.format(
                 activity=args.event,
                 time=datetime.now().strftime('%H:%M')))
-        else:
+        except ValueError:
             print(
                 'Unknown activity \'{0}\', did not record.\nUse [-n] if you want to add a new activity.'.format(args.event))
     elif args.list:
-        print(get_activity_times(time_manangement_cfg).head(args.n)
-              .to_string(float_format=lambda s: '{:.2f}'.format(s*100)))
+        # If the user wants to get a summary of how they spent their time
+        print(parse_timestamps(io.get_timestamps(
+            datetime.min, datetime.max))[:args.n])
 
 
-def record_event(
-    activity_folder: Path,
-    activity,
-    time=datetime.now(),
-    new=False
-) -> bool:
-    act_list_path = activity_folder.joinpath('list.txt')
+def parse_timestamps(time_table: pd.DataFrame, max_time=timedelta(hours=12)) -> pd.DataFrame:
+    time_table['duration'] = -time_table['time'].diff(periods=-1)
 
-    if not activity_folder.exists():
-        activity_folder.mkdir()
+    time_table.mask(time_table['duration'] > max_time, inplace=True)
+    durations = time_table.groupby(['activity']).sum()
 
-    if not act_list_path.exists():
-        open(act_list_path, mode='w').close()
+    durations['percent'] = durations['duration'] / durations['duration'].sum()
 
-    with open(act_list_path, mode='r+') as act_list:
-        if not new and (activity + '\n') not in act_list:
-            return False
-        elif new:
-            act_list.seek(0, 2)
-            act_list.write(activity + '\n')
-
-    with open(activity_folder.joinpath(time.strftime('%Y-%m') + '.csv'), mode='a') as file:
-        file.write(','.join([activity, str(time), '\n']))
-
-    return True
-
-
-def get_activity_times(time_management_cfg: TimeManagementConfig, max_time=timedelta(hours=12)) -> pd.DataFrame:
-    # TODO make max_time a config option
-    activity_time = {}
-
-    try:
-        duration = datetime.now() - time_management_cfg.list_duration
-    except OverflowError:
-        duration = datetime.min
-
-    min_date = max(time_management_cfg.list_begin_time, duration)
-    del duration
-
-    for csv_path in time_management_cfg.activity_folder.glob('*.csv'):
-        file_date = datetime.strptime(csv_path.stem, '%Y-%m')
-        if file_date < min_date:
-            continue
-
-        with open(csv_path) as file:
-            df = pd.read_csv(file, names=['name', 'time'], usecols=[0, 1])
-            df['time'] = pd.to_datetime(df['time'])
-
-            try:
-                activity_iter = df.itertuples()
-                activity = next(activity_iter)
-                next_activity = next(activity_iter)
-
-                while True:
-                    time: timedelta = next_activity.time - activity.time
-
-                    # Remove the microseconds because they're annoying to
-                    # look at
-                    time = time - timedelta(microseconds=time.microseconds)
-
-                    if not (timedelta(seconds=0) < time <= max_time):
-                        time = timedelta(seconds=0)
-                    elif activity.time < min_date:
-                        pass
-                    elif activity.name not in activity_time:
-                        activity_time.update({activity.name: time})
-                    else:
-                        activity_time[activity.name] += time
-
-                    activity = next_activity
-                    next_activity = next(activity_iter)
-            except StopIteration:
-                pass
-
-    times = pd.DataFrame.from_dict(
-        activity_time, orient='index', columns=['time'])
-
-    times['percent'] = times['time'] / times['time'].sum()
-
-    times['per_day'] = times['percent'] * timedelta(days=1)
-    times['per_day'] = times['per_day'].apply(
+    durations['per_day'] = durations['percent'] * timedelta(days=1)
+    durations['per_day'] = durations['per_day'].apply(
         lambda td: td - timedelta(microseconds=td.microseconds))
-    times.sort_values(by=['time'], ascending=False, inplace=True)
+    durations.sort_values(by=['duration'], ascending=False, inplace=True)
 
-    return times
+    return durations
 
 
 def timelog_entry_point():
     from .. import master_config
 
     with master_config:
-        take_args(master_config.time_management)
+        take_args(master_config.time_management,
+                  DatabaseWrapper(master_config.data_folder.joinpath('dailydata.db')))
 
 
 if __name__ == '__main__':
     from .. import master_config
 
-    get_activity_times(master_config.time_management)
+    parse_timestamps(master_config.time_management)

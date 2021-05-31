@@ -38,15 +38,20 @@ def dict_factory(cursor: sqlite3.Cursor, row):
 
 
 class DatabaseWrapper:
-    def __init__(self, folder_path: Path, in_memory=False):
-        self.db = sqlite3.connect(folder_path.joinpath(
-            'dailydata.db'), detect_types=sqlite3.PARSE_DECLTYPES)
+    def __init__(self, db_path: Path = None):
+
+        if not db_path:
+            db_path = ':memory:'
+
+        self.db = sqlite3.connect(
+            db_path, detect_types=sqlite3.PARSE_DECLTYPES)
         self.db.row_factory = sqlite3.Row
 
-    def __init__(self):
-        self.db = sqlite3.connect(
-            ':memory:', detect_types=sqlite3.PARSE_DECLTYPES)
-        self.db.row_factory = sqlite3.Row
+        n_tables = self.db.execute(
+            'SELECT COUNT(name) FROM sqlite_master WHERE type="table" AND name NOT LIKE "sqlite_%";').fetchone()[0]
+
+        if n_tables == 0:
+            self.reset()
 
     def __exit__(self, ex_type, ex_val, ex_tb):
         self.db.close()
