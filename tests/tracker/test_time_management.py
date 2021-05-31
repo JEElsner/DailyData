@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 import unittest
 from unittest.mock import MagicMock, patch
@@ -51,6 +51,17 @@ class TestTimeManagement(unittest.TestCase):
         data = txt_reader.get_timestamps(pd.Timestamp.min, pd.Timestamp.max)
 
         timelog.parse_timestamps(data)
+
+    def test_parse_str_durations(self):
+        tests = {'10h3m': timedelta(hours=10, minutes=3),
+                 '1m3s': timedelta(minutes=1, seconds=3),
+                 '0d0h0s': timedelta(0),
+                 '6d3m2s': timedelta(days=6, minutes=3, seconds=2),
+                 '5s999d': timedelta(days=999, seconds=5)}
+
+        for key, value in tests.items():
+            with self.subTest(key):
+                self.assertEqual(value, timelog.parse_time_duration(key))
 
 
 if __name__ == '__main__':

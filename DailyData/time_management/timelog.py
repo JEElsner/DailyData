@@ -2,7 +2,7 @@ from DailyData.io.db import DatabaseWrapper
 from DailyData.io.timelog_io import DebugTimelogIO, TimelogIO
 import sys
 import argparse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 import pandas as pd
 
@@ -14,6 +14,9 @@ from .config import TimeManagementConfig
 from pathlib import Path
 
 from dateutil import tz
+from dateutil import parser as time_parser
+
+import re
 
 
 def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sys.argv[1:]):
@@ -27,11 +30,13 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
     parser_doing.add_argument('-n', '--new',
                               action='store_true',
                               help='Add a new activity to track')
+    parser_doing.add_argument('-t', '--time', action='store')
+    parser_doing.add_argument('-r', '--relative', action='store')
 
     parser.add_argument('-l', '--list',
                         action='store_true',
                         help='List the activities recorded')
-    parser.add_argument('-n',
+    parser.add_argument('-n', '--num',
                         type=int, default=10)
 
     # get and parse the args passed to the method
@@ -42,22 +47,33 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
         if args.new:
             io.new_activity(args.event)
 
+        if args.time:
+            time = time_parser.parse(args.time)
+        else:
+            time = datetime.now()
+
+            if args.relative:
+                time -= parse_time_duration(args.relative)
+
+        time = time.astimezone(tz.tzlocal())
+
         try:
             io.record_time(args.event, 'default_usr',
-                           timestamp=datetime.utcnow().astimezone(tz.UTC))
+                           timestamp=time)
             print('Recorded doing {activity} at {time}'.format(
                 activity=args.event,
-                time=datetime.now().strftime('%H:%M')))
+                time=time.strftime('%H:%M')))
         except ValueError:
             print(
                 'Unknown activity \'{0}\', did not record.\nUse [-n] if you want to add a new activity.'.format(args.event))
     elif args.list:
         # If the user wants to get a summary of how they spent their time
         print(parse_timestamps(io.get_timestamps(
-            datetime.min, datetime.max))[:args.n])
+            datetime.min, datetime.max))[:args.num])
 
 
 def parse_timestamps(time_table: pd.DataFrame, max_time=timedelta(hours=12)) -> pd.DataFrame:
+    time_table.sort_values(by=['time'], inplace=True)
     time_table['duration'] = -time_table['time'].diff(periods=-1)
 
     time_table.mask(time_table['duration'] > max_time, inplace=True)
@@ -71,6 +87,38 @@ def parse_timestamps(time_table: pd.DataFrame, max_time=timedelta(hours=12)) -> 
     durations.sort_values(by=['duration'], ascending=False, inplace=True)
 
     return durations
+
+
+def parse_time_duration(txt: str) -> timedelta:
+    curr_group = ''
+
+    d = {}
+
+    for c in txt:
+        if c in ['d', 'h', 'm', 's']:
+            if len(curr_group) == 0:
+                raise ValueError('Invalid duration: {}'.format(txt))
+
+            try:
+                value = int(curr_group)
+            except:
+                raise ValueError('Invalid duration: {}'.format(curr_group))
+
+            # pattern matching can't come soon enough...
+            if c == 'd':
+                d['days'] = value
+            elif c == 'h':
+                d['hours'] = value
+            elif c == 'm':
+                d['minutes'] = value
+            elif c == 's':
+                d['seconds'] = value
+
+            curr_group = ''
+        elif c.isdigit():
+            curr_group += c
+
+    return timedelta(**d)
 
 
 def timelog_entry_point():
