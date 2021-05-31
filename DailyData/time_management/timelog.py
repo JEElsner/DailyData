@@ -1,22 +1,18 @@
-from DailyData.io.db import DatabaseWrapper
-from DailyData.io.timelog_io import DebugTimelogIO, TimelogIO
-import sys
 import argparse
-from datetime import datetime, timedelta, date
-
-import pandas as pd
-
-from DailyData import time_management
-from DailyData.config import MasterConfig
-
-from .config import TimeManagementConfig
-
+import re
+import sys
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from dateutil import tz
+import pandas as pd
+from DailyData import time_management
+from DailyData.config import MasterConfig
+from DailyData.io.db import DatabaseWrapper
+from DailyData.io.timelog_io import DebugTimelogIO, TimelogIO
 from dateutil import parser as time_parser
+from dateutil import tz
 
-import re
+from .config import TimeManagementConfig
 
 
 def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sys.argv[1:]):
