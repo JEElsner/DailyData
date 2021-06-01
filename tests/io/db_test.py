@@ -73,12 +73,11 @@ class DBTests(unittest.TestCase):
 
     def test_preserve_timezone(self):
         self.db_wrapper.new_activity('foo')
-        self.db_wrapper.new_activity('f', parent='foo', is_alias=True)
 
         self.db_wrapper.new_user('bar')
 
         test_date = datetime.now(tz=tz.tzlocal())
-        self.db_wrapper.record_time('f', 'bar', test_date)
+        self.db_wrapper.record_time('foo', 'bar', test_date)
 
         row = self.db_wrapper.db.execute('SELECT * FROM timelog').fetchone()
 
@@ -123,6 +122,23 @@ class DBTests(unittest.TestCase):
 
         self.assertTrue(np.all(df.columns, fetched_df.columns))
         self.assertTrue(df.equals(fetched_df))
+
+    def test_update_activity(self):
+        # Test updating the activity last recorded
+
+        self.db_wrapper.new_activity('foo')
+        self.db_wrapper.new_activity('bar')
+
+        self.db_wrapper.record_time('foo', 'default', datetime.now())
+        self.db_wrapper.update_last_record('bar')
+
+        last_act_name = self.db_wrapper.db.execute(
+            'SELECT * FROM timelog').fetchone()['activity']
+        row_count = self.db_wrapper.db.execute(
+            'SELECT COUNT(*) FROM timelog').fetchone()[0]
+
+        self.assertEqual('bar', last_act_name)
+        self.assertEqual(1, row_count)
 
     def tearDown(self) -> None:
         self.db_wrapper.db.close()

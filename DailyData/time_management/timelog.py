@@ -27,7 +27,8 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
                               action='store_true',
                               help='Add a new activity to track')
     parser_doing.add_argument('-t', '--time', action='store')
-    parser_doing.add_argument('-r', '--relative', action='store')
+    parser_doing.add_argument('-b', '--back', action='store')
+    parser_doing.add_argument('-u', '--update', action='store_true')
 
     parser.add_argument('-l', '--list',
                         action='store_true',
@@ -48,8 +49,8 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
         else:
             time = datetime.now()
 
-            if args.relative:
-                time -= parse_time_duration(args.relative)
+            if args.back:
+                time -= parse_time_duration(args.back)
 
         time = time.astimezone(tz.tzlocal())
 
@@ -62,16 +63,23 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
             last = None
 
         try:
-            io.record_time(args.event, 'default_usr',
-                           timestamp=time)
-            print('Recorded doing {activity} at {time}'.format(
-                activity=args.event,
-                time=time.strftime('%H:%M')))
+            if args.update:
+                if isinstance(io, DatabaseWrapper):
+                    io.update_last_record(args.event)
+                    print('Updated last activity to doing', args.event)
+                else:
+                    print('Update not supported by data storage system')
+            else:
+                io.record_time(args.event, 'default_usr',
+                               timestamp=time)
+                print('Recorded doing {activity} at {time}'.format(
+                    activity=args.event,
+                    time=time.strftime('%H:%M')))
         except ValueError:
             print(
                 'Unknown activity \'{0}\', did not record.\nUse [-n] if you want to add a new activity.'.format(args.event))
 
-        if last:
+        if last and not args.update:
             print('Finished doing {act} for {time}'.format(
                 act=last['activity'],
                 time=time - last['time']

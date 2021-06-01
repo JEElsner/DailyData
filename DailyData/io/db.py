@@ -93,21 +93,31 @@ class DatabaseWrapper:
                          'alias': is_alias})
         self.db.commit()
 
+    def get_activity_or_parent(self, activity):
+        activity_exists = self.db.execute(
+            'SELECT * FROM activity WHERE name=:activity',
+            {'activity': activity}).fetchone()
+
+        if not activity_exists:
+            return None
+
+        if activity_exists['parent'] is not None and activity_exists['alias']:
+            return activity_exists['parent']
+        else:
+            return activity
+
     def record_time(self, activity: str, user: str, timestamp: datetime):
 
         insert_cmd = '''INSERT INTO timelog (time, timezone_name, timezone_offset, activity, user)
         VALUES(:time, :tz_name, :tz_offset, :act, :user);
         '''
 
-        activity_exists = self.db.execute(
-            'SELECT * FROM activity WHERE name=:activity',
-            {'activity': activity}).fetchone()
+        old_act = activity
+        activity = self.get_activity_or_parent(activity)
 
-        if not activity_exists:
+        if activity is None:
             raise ValueError(
-                'Activity {} not found'.format(activity))
-        elif activity_exists['parent'] is not None and activity_exists['alias']:
-            activity = activity_exists['parent']
+                'Activity {} not found'.format(old_act))
 
         self.db.execute(insert_cmd, {
             # Convert the time to UTC if there is timezone information
@@ -149,7 +159,7 @@ class DatabaseWrapper:
         if as_entered:
             cmd = '''SELECT *
             FROM
-                timelog 
+                timelog
             ORDER BY
                 id DESC
             LIMIT 1;
@@ -157,7 +167,7 @@ class DatabaseWrapper:
         else:
             cmd = '''SELECT *
             FROM
-                timelog 
+                timelog
             ORDER BY
                 time DESC
             LIMIT 1;
@@ -176,6 +186,38 @@ class DatabaseWrapper:
         del dict_rec['timezone_name'], dict_rec['timezone_offset']
 
         return dict_rec
+
+    def update_last_record(self, activity: str, search_by_id=False):
+        old_act = activity
+        activity = self.get_activity_or_parent(activity)
+
+        if activity is None:
+            raise ValueError(
+                'Activity {} not found'.format(old_act))
+
+        if search_by_id:
+            cmd = '''SELECT *
+            FROM
+                timelog
+            ORDER BY
+                id DESC
+            LIMIT 1;
+            '''
+        else:
+            cmd = '''SELECT *
+            FROM
+                timelog
+            ORDER BY
+                time DESC
+            LIMIT 1;
+            '''
+
+        last_id = self.db.execute(cmd).fetchone()['id']
+        self.db.execute('UPDATE timelog SET activity=:act WHERE id=:id', {
+            'id': last_id,
+            'act': activity
+        })
+        self.db.commit()
 
     def reset(self) -> None:
         with resources.open_text(package='DailyData.io', resource=SCHEMA, encoding='utf8') as f:
