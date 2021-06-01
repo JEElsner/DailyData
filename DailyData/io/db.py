@@ -3,7 +3,7 @@ from pathlib import Path
 from importlib import resources
 from datetime import datetime, timedelta, tzinfo
 from sqlite3.dbapi2 import Row
-from typing import List
+from typing import Any, Dict, List
 from dateutil import tz
 import numpy as np
 
@@ -19,13 +19,21 @@ def apply_tz(row: pd.Series,
              time_col_name='time'
              ) -> datetime:
     if np.isfinite(row[offset_col_name]):
-        tz_inst = tz.tzoffset(row[tzname_col_name],
-                              timedelta(seconds=row[offset_col_name]))
-        non_naive_datetime = tz_inst.fromutc(
-            row[time_col_name].replace(tzinfo=tz_inst))
-        return non_naive_datetime
+        return apply_tz_single(row, offset_col_name, tzname_col_name, time_col_name)
     else:
         return row[time_col_name]
+
+
+def apply_tz_single(row,
+                    offset_col_name='timezone_offset',
+                    tzname_col_name='timezone_name',
+                    time_col_name='time'
+                    ):
+    tz_inst = tz.tzoffset(row[tzname_col_name],
+                          timedelta(seconds=row[offset_col_name]))
+    non_naive_datetime = tz_inst.fromutc(
+        row[time_col_name].replace(tzinfo=tz_inst))
+    return non_naive_datetime
 
 
 def dict_factory(cursor: sqlite3.Cursor, row):
@@ -114,7 +122,8 @@ class DatabaseWrapper:
         self.db.commit()
 
     def get_timestamps(self, earliest: datetime, latest: datetime) -> pd.DataFrame:
-        columns = ['time', 'timezone_offset', 'timezone_name', 'activity']
+        columns = ['time', 'timezone_offset',
+                   'timezone_name', 'activity']
 
         cmd = '''SELECT :cols FROM timelog WHERE time >= :min AND time <= :max
         '''.replace(':cols', ', '.join(columns))
@@ -135,6 +144,38 @@ class DatabaseWrapper:
         frame = pd.DataFrame(fetch, columns=columns)
         frame['time'] = frame.apply(apply_tz, axis=1)
         return frame.drop(columns=['timezone_name', 'timezone_offset'])
+
+    def get_last_record(self, as_entered=False) -> Dict[str, Any]:
+        if as_entered:
+            cmd = '''SELECT *
+            FROM
+                timelog 
+            ORDER BY
+                id DESC
+            LIMIT 1;
+            '''
+        else:
+            cmd = '''SELECT *
+            FROM
+                timelog 
+            ORDER BY
+                time DESC
+            LIMIT 1;
+            '''
+
+        record: Row = self.db.execute(cmd).fetchone()
+
+        if record is None:
+            return None
+
+        dict_rec = {key: record[key] for key in record.keys()}
+
+        if dict_rec['timezone_offset'] is not None:
+            dict_rec['time'] = apply_tz_single(dict_rec)
+
+        del dict_rec['timezone_name'], dict_rec['timezone_offset']
+
+        return dict_rec
 
     def reset(self) -> None:
         with resources.open_text(package='DailyData.io', resource=SCHEMA, encoding='utf8') as f:

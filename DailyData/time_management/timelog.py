@@ -53,6 +53,14 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
 
         time = time.astimezone(tz.tzlocal())
 
+        # Get and print the last activity if our data storage does that
+        if isinstance(io, DatabaseWrapper):
+            last = io.get_last_record()
+            if last is not None and last['time'].tzinfo == None:
+                last['time'] = last['time'].replace(tzinfo=tz.tzlocal())
+        else:
+            last = None
+
         try:
             io.record_time(args.event, 'default_usr',
                            timestamp=time)
@@ -62,6 +70,12 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
         except ValueError:
             print(
                 'Unknown activity \'{0}\', did not record.\nUse [-n] if you want to add a new activity.'.format(args.event))
+
+        if last:
+            print('Finished doing {act} for {time}'.format(
+                act=last['activity'],
+                time=time - last['time']
+            ))
     elif args.list:
         # If the user wants to get a summary of how they spent their time
         print(parse_timestamps(io.get_timestamps(

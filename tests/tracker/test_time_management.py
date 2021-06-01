@@ -1,13 +1,14 @@
+import unittest
 from datetime import date, datetime, timedelta
 from pathlib import Path
-import unittest
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
-
+from DailyData.io.db import DatabaseWrapper
 from DailyData.io.timelog_io import DebugTimelogIO
 from DailyData.time_management import timelog
 from DailyData.time_management.config import TimeManagementConfig
+from dateutil import tz
 
 
 class TestTimeManagement(unittest.TestCase):
@@ -62,6 +63,63 @@ class TestTimeManagement(unittest.TestCase):
         for key, value in tests.items():
             with self.subTest(key):
                 self.assertEqual(value, timelog.parse_time_duration(key))
+
+    @patch('builtins.print')
+    @patch('DailyData.time_management.timelog.datetime')
+    def test_last_act_print(self, dtm: MagicMock, prnt: MagicMock):
+        last = datetime.now()
+        next = last + timedelta(minutes=10)
+
+        dtm.now = MagicMock(return_value=next)
+
+        db = DatabaseWrapper()
+        db.new_activity('foo')
+        db.new_activity('bar')
+
+        db.record_time('foo', 'none', last)
+
+        timelog.take_args(self.config, db, argv=['doing', 'bar'])
+
+        prnt.assert_called_with('Finished doing foo for 0:10:00')
+
+    @patch('builtins.print')
+    @patch('DailyData.time_management.timelog.datetime')
+    def test_last_act_print_with_tz(self, dtm, prnt: MagicMock):
+        last = datetime.now().astimezone(tz.tzlocal())
+        next = (last + timedelta(minutes=50)).astimezone(tz.tzlocal())
+
+        dtm.now = MagicMock(return_value=next)
+
+        db = DatabaseWrapper()
+        db.new_activity('foo')
+        db.new_activity('bar')
+
+        db.record_time('foo', 'none', last)
+
+        timelog.take_args(self.config, db, argv=['doing', 'bar'])
+
+        prnt.assert_called_with('Finished doing foo for 0:50:00')
+
+    @patch('builtins.print')
+    @patch('DailyData.time_management.timelog.datetime')
+    def test_last_act_multiple(self, dtm, prnt: MagicMock):
+        first = datetime.now().astimezone(tz.tzlocal())
+        mid = (first + timedelta(minutes=13))
+        next = (mid + timedelta(minutes=7))
+
+        dtm.now = MagicMock(return_value=next)
+
+        db = DatabaseWrapper()
+        db.new_activity('foo')
+        db.new_activity('bar')
+        db.new_activity('bash')
+
+        db.record_time('foo', 'none', first)
+        db.record_time('bar', 'none', mid)
+
+        timelog.take_args(self.config, db, argv=['doing', 'bash'])
+
+        prnt.assert_called_with('Finished doing bar for 0:07:00')
 
 
 if __name__ == '__main__':
