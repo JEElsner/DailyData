@@ -15,5 +15,6 @@ CREATE TABLE timelog (
     timezone_name TEXT,
     activity TEXT NOT NULL,
     user TEXT,
+    backdated BOOLEAN,
     FOREIGN KEY (user) REFERENCES user (username) FOREIGN KEY (activity) REFERENCES activity (name)
 );

@@ -7,7 +7,7 @@ class TimelogIO(abc.ABC):
     def new_activity(self, activity: str, parent: str = None, is_alias: bool = None):
         pass
 
-    def record_time(self, activity: str, user: str, timestamp: datetime = datetime.now()):
+    def record_time(self, activity: str, user: str, timestamp: datetime = datetime.now(), backdated=False):
         pass
 
     def get_timestamps(self, earliest: datetime, latest: datetime) -> List:

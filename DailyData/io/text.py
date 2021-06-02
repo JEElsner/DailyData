@@ -12,7 +12,7 @@ class TextIO(TimelogIO):
         self.activity_folder = act_folder
         self.act_list_path = self.activity_folder.joinpath('list.txt')
 
-    def record_time(self, activity: str, user: str, timestamp: datetime):
+    def record_time(self, activity: str, user: str, timestamp: datetime, backdated=False):
         if not self.activity_folder.exists():
             self.activity_folder.mkdir()
 

@@ -17,6 +17,10 @@ class DBTests(unittest.TestCase):
         self.db_wrapper = DatabaseWrapper()
         self.db_wrapper.reset()
 
+        self.db_wrapper.new_activity('foo')
+        self.db_wrapper.new_activity('bar')
+        self.db_wrapper.new_activity('bash')
+
     def test_add_user(self):
         self.db_wrapper.new_user('gary')
 
@@ -56,12 +60,19 @@ class DBTests(unittest.TestCase):
         self.db_wrapper.new_user(user)
         self.db_wrapper.new_activity(act)
 
-        self.db_wrapper.record_time(act, user, datetime.now())
+        time = datetime.utcnow()
 
-        # print(self.db_wrapper.db.execute('SELECT * FROM timelog').fetchall())
+        self.db_wrapper.record_time(act, user, time)
+
+        record = self.db_wrapper.db.execute('SELECT * FROM timelog').fetchone()
+
+        self.assertEqual(1, self.db_wrapper.db.execute(
+            'SELECT COUNT(*) FROM timelog').fetchone()[0])
+        self.assertEqual(act, record['activity'])
+        self.assertEqual(time, record['time'])
+        self.assertEqual(False, record['backdated'])
 
     def test_add_aliased_timestamp(self):
-        self.db_wrapper.new_activity('foo')
         self.db_wrapper.new_activity('f', parent='foo', is_alias=True)
 
         self.db_wrapper.new_user('bar')
@@ -72,7 +83,6 @@ class DBTests(unittest.TestCase):
             'SELECT activity FROM timelog').fetchone()[0])
 
     def test_preserve_timezone(self):
-        self.db_wrapper.new_activity('foo')
 
         self.db_wrapper.new_user('bar')
 
@@ -125,10 +135,6 @@ class DBTests(unittest.TestCase):
 
     def test_update_activity(self):
         # Test updating the activity last recorded
-
-        self.db_wrapper.new_activity('foo')
-        self.db_wrapper.new_activity('bar')
-
         self.db_wrapper.record_time('foo', 'default', datetime.now())
         self.db_wrapper.update_last_record('bar')
 
@@ -139,6 +145,14 @@ class DBTests(unittest.TestCase):
 
         self.assertEqual('bar', last_act_name)
         self.assertEqual(1, row_count)
+
+    def test_backdate(self):
+        time = datetime.now()
+
+        self.db_wrapper.record_time('foo', None, time, backdated=True)
+
+        self.assertEqual(True, self.db_wrapper.db.execute(
+            'SELECT backdated FROM timelog').fetchone()[0])
 
     def tearDown(self) -> None:
         self.db_wrapper.db.close()

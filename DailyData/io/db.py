@@ -106,10 +106,10 @@ class DatabaseWrapper:
         else:
             return activity
 
-    def record_time(self, activity: str, user: str, timestamp: datetime):
+    def record_time(self, activity: str, user: str, timestamp: datetime, backdated=False):
 
-        insert_cmd = '''INSERT INTO timelog (time, timezone_name, timezone_offset, activity, user)
-        VALUES(:time, :tz_name, :tz_offset, :act, :user);
+        insert_cmd = '''INSERT INTO timelog (time, timezone_name, timezone_offset, activity, user, backdated)
+        VALUES(:time, :tz_name, :tz_offset, :act, :user, :backdated);
         '''
 
         # Make sure any values given with pandas datatypes can be recorded
@@ -130,7 +130,8 @@ class DatabaseWrapper:
             'tz_offset': timestamp.tzinfo.utcoffset(timestamp).total_seconds() if timestamp.tzinfo else None,
             'activity': activity,
             'act': activity,
-            'user': user
+            'user': user,
+            'backdated': backdated
         })
 
         self.db.commit()
@@ -217,7 +218,7 @@ class DatabaseWrapper:
             '''
 
         last_id = self.db.execute(cmd).fetchone()['id']
-        self.db.execute('UPDATE timelog SET activity=:act WHERE id=:id', {
+        self.db.execute('UPDATE timelog SET activity=:act, backdated=True WHERE id=:id', {
             'id': last_id,
             'act': activity
         })
@@ -240,7 +241,7 @@ def __main(path: Path):
 
     for row in text_io.get_timestamps(pd.Timestamp.min, pd.Timestamp.max).iterrows():
         db_io.record_time(row[1]['activity'], None,
-                          row[1]['time'].tz_localize(tz.tzlocal()))
+                          row[1]['time'].tz_localize(tz.tzlocal()), backdated=None)
 
     n_converted = db_io.db.execute(
         'SELECT COUNT(*) FROM timelog').fetchone()[0]
