@@ -112,6 +112,10 @@ class DatabaseWrapper:
         VALUES(:time, :tz_name, :tz_offset, :act, :user);
         '''
 
+        # Make sure any values given with pandas datatypes can be recorded
+        if isinstance(timestamp, pd.Timestamp):
+            timestamp = timestamp.to_pydatetime()
+
         old_act = activity
         activity = self.get_activity_or_parent(activity)
 
@@ -222,3 +226,31 @@ class DatabaseWrapper:
     def reset(self) -> None:
         with resources.open_text(package='DailyData.io', resource=SCHEMA, encoding='utf8') as f:
             self.db.executescript(f.read())
+
+
+def __main(path: Path):
+    from DailyData.io.text import TextIO
+
+    text_io = TextIO(path.joinpath('./activities'))
+    db_io = DatabaseWrapper(path.joinpath('dailydata.db'))
+
+    with open(path.joinpath('./activities/list.txt'), mode='r') as list_file:
+        for line in list_file:
+            db_io.new_activity(line.strip())
+
+    for row in text_io.get_timestamps(pd.Timestamp.min, pd.Timestamp.max).iterrows():
+        db_io.record_time(row[1]['activity'], None,
+                          row[1]['time'].tz_localize(tz.tzlocal()))
+
+    n_converted = db_io.db.execute(
+        'SELECT COUNT(*) FROM timelog').fetchone()[0]
+    print('{} timelogs converted'.format(n_converted))
+
+    last_converted = db_io.db.execute(
+        'SELECT activity, time FROM timelog ORDER BY time DESC').fetchone()
+    print('Last converted log: {} at {}'.format(
+        last_converted[0], last_converted[1]))
+
+
+if __name__ == '__main__':
+    __main(Path('.'))

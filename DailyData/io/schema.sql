@@ -14,6 +14,6 @@ CREATE TABLE timelog (
     timezone_offset FLOAT,
     timezone_name TEXT,
     activity TEXT NOT NULL,
-    user INTEGER NOT NULL,
+    user TEXT,
     FOREIGN KEY (user) REFERENCES user (username) FOREIGN KEY (activity) REFERENCES activity (name)
 );
