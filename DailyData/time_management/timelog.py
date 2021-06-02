@@ -41,20 +41,16 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
 
     # If the user wants to record a time
     if not args.list:
-        backdated = False
-
         if args.new:
             io.new_activity(args.event)
 
         if args.time:
             time = time_parser.parse(args.time)
-            backdated = True
         else:
             time = datetime.now()
 
             if args.back:
                 time -= parse_time_duration(args.back)
-                backdated = True
 
         time = time.astimezone(tz.tzlocal())
 
@@ -75,8 +71,7 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
                     print('Update not supported by data storage system')
             else:
                 io.record_time(args.event, 'default_usr',
-                               timestamp=time,
-                               backdated=backdated)
+                               timestamp=time)
                 print('Recorded doing {activity} at {time}'.format(
                     activity=args.event,
                     time=time.strftime('%H:%M')))
