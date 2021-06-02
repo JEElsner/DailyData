@@ -224,7 +224,17 @@ class DatabaseWrapper:
         })
         self.db.commit()
 
-    def reset(self) -> None:
+    def reset(self, force=False) -> None:
+        try:
+            row_count = self.db.execute(
+                'SELECT COUNT(*) FROM timelog').fetchone()[0]
+
+            if row_count > 0 and not force:
+                raise RuntimeError(
+                    'Attempted to reset non-empty database. Set force=True, cross your heart, and hope to die to really make it go away.')
+        except sqlite3.OperationalError as err:
+            pass
+
         with resources.open_text(package='DailyData.io', resource=SCHEMA, encoding='utf8') as f:
             self.db.executescript(f.read())
 
