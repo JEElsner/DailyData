@@ -21,7 +21,7 @@ def apply_tz(row: pd.Series,
     if np.isfinite(row[offset_col_name]):
         return apply_tz_single(row, offset_col_name, tzname_col_name, time_col_name)
     else:
-        return row[time_col_name]
+        return row[time_col_name].tz_localize(tz.tzlocal())
 
 
 def apply_tz_single(row,

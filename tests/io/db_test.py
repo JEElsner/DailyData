@@ -129,8 +129,9 @@ class DBTests(unittest.TestCase):
 
         fetched_df = self.db_wrapper.get_timestamps(datetime.min, datetime.max)
 
-        self.assertTrue(np.all(df.columns, fetched_df.columns))
-        self.assertTrue(df.equals(fetched_df))
+        self.assertTrue(np.all(df.columns, fetched_df.columns),
+                        'Columns are not the same')
+        self.assertTrue(df.equals(fetched_df), 'Values are not equal')
 
     def test_update_activity(self):
         # Test updating the activity last recorded
