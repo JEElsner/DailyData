@@ -1,13 +1,13 @@
-from datetime import datetime, timedelta, tzinfo
 import sqlite3
+import unittest
+from datetime import datetime, timedelta, tzinfo
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
 
 import dateutil
 import numpy as np
 import pandas as pd
 from DailyData.io import DatabaseWrapper, timelog_io
-import unittest
-from unittest.mock import MagicMock, Mock, patch
-from pathlib import Path
 from dateutil import tz
 
 

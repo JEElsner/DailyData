@@ -8,7 +8,8 @@ import unittest
 class TestWithData(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        TestWithData.db_wrapper = DatabaseWrapper('./tests/sample.db')
+        TestWithData.db_wrapper = DatabaseWrapper(
+            './tests/sample_data/sample.db')
 
     def test_parse_timestamps(self):
         timelog.parse_timestamps(
