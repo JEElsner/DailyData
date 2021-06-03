@@ -85,9 +85,13 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
                 time=time - last['time']
             ))
     elif args.list:
+        first = time_manangement_cfg.list_begin_time
+        last = datetime.now()
+
         # If the user wants to get a summary of how they spent their time
-        print(parse_timestamps(io.get_timestamps(
-            datetime.min, datetime.max))[:args.num])
+        print(
+            'Between {:%Y-%m-%d} and {:%Y-%m-%d}, you have spent your time as follows:'.format(first, last))
+        print(parse_timestamps(io.get_timestamps(first, last))[:args.num])
 
 
 def parse_timestamps(time_table: pd.DataFrame, max_time=timedelta(hours=12)) -> pd.DataFrame:
