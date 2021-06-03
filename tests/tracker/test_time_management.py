@@ -67,7 +67,7 @@ class TestTimeManagement(unittest.TestCase):
     @patch('builtins.print')
     @patch('DailyData.time_management.timelog.datetime')
     def test_last_act_print(self, dtm: MagicMock, prnt: MagicMock):
-        last = datetime.now()
+        last = datetime.now(tz=tz.tzlocal())
         next = last + timedelta(minutes=10)
 
         dtm.now = MagicMock(return_value=next)
