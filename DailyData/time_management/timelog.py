@@ -91,9 +91,10 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
 
 
 def parse_timestamps(time_table: pd.DataFrame, max_time=timedelta(hours=12)) -> pd.DataFrame:
-    time_table.sort_values(by=['time'], inplace=True)
-    time_table['duration'] = - \
-        time_table['time'].dt.tz_convert(tz.UTC).diff(periods=-1)
+    time_table['utc_time'] = pd.to_datetime(time_table['time'], utc=True)
+
+    time_table.sort_values(by=['utc_time'], inplace=True)
+    time_table['duration'] = -time_table['utc_time'].diff(periods=-1)
 
     time_table.mask(time_table['duration'] > max_time, inplace=True)
     durations = time_table.groupby(['activity']).sum()
