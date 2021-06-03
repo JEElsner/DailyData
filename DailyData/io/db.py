@@ -1,3 +1,4 @@
+from DailyData.io.timelog_io import TimelogIO
 import sqlite3
 from pathlib import Path
 from importlib import resources
@@ -45,7 +46,7 @@ def dict_factory(cursor: sqlite3.Cursor, row):
     return d
 
 
-class DatabaseWrapper:
+class DatabaseWrapper(TimelogIO):
     def __init__(self, db_path: Path = None):
 
         if not db_path:
@@ -107,6 +108,7 @@ class DatabaseWrapper:
             return activity
 
     def record_time(self, activity: str, user: str, timestamp: datetime, backdated=False):
+        super().record_time(activity, user, timestamp, backdated)
 
         insert_cmd = '''INSERT INTO timelog (time, timezone_name, timezone_offset, activity, user, backdated)
         VALUES(:time, :tz_name, :tz_offset, :act, :user, :backdated);

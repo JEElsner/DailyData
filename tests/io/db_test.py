@@ -59,7 +59,7 @@ class DBTests(unittest.TestCase):
         self.db_wrapper.new_user(user)
         self.db_wrapper.new_activity(act)
 
-        time = datetime.utcnow()
+        time = datetime.utcnow().astimezone(tz.UTC)
 
         self.db_wrapper.record_time(act, user, time)
 
@@ -68,7 +68,9 @@ class DBTests(unittest.TestCase):
         self.assertEqual(1, self.db_wrapper.db.execute(
             'SELECT COUNT(*) FROM timelog').fetchone()[0])
         self.assertEqual(act, record['activity'])
-        self.assertEqual(time, record['time'])
+        self.assertEqual(time.replace(tzinfo=None), record['time'])
+        self.assertEqual(time.tzinfo.utcoffset(
+            time).total_seconds(), record['timezone_offset'])
         self.assertEqual(False, record['backdated'])
 
     def test_add_aliased_timestamp(self):
@@ -76,7 +78,7 @@ class DBTests(unittest.TestCase):
 
         self.db_wrapper.new_user('bar')
 
-        self.db_wrapper.record_time('f', 'bar', datetime.now())
+        self.db_wrapper.record_time('f', 'bar', datetime.now(tz=tz.tzlocal()))
 
         self.assertEqual('foo', self.db_wrapper.db.execute(
             'SELECT activity FROM timelog').fetchone()[0])
@@ -104,38 +106,14 @@ class DBTests(unittest.TestCase):
         self.assertEqual(datetime.now().hour,
                          tz_inst.fromutc(fetched_date).hour)
 
-    def test_patched_get_rows(self):
-
-        self.db_wrapper.new_user('jeels')
-
-        df = pd.DataFrame(
-            columns=['time', 'activity'])
-        for i in range(0, 10):
-            if i % 2 == 0:
-                tz_name = 'PDT'
-                tz_offset = timedelta(hours=-7)
-                tz_inst = tz.tzoffset(tz_name, tz_offset)
-            else:
-                tz_name, tz_offset, tz_inst = None, None, None
-
-            time = datetime.now() + timedelta(seconds=10 * i)
-            time = time.replace(tzinfo=tz_inst)
-            activity = 'bar' + str(i)
-
-            df.loc[df.shape[0]] = {'time': time, 'activity': activity}
-
-            self.db_wrapper.new_activity(activity)
-            self.db_wrapper.record_time(activity, 'jeels', time)
-
-        fetched_df = self.db_wrapper.get_timestamps(datetime.min, datetime.max)
-
-        self.assertTrue(np.all(df.columns, fetched_df.columns),
-                        'Columns are not the same')
-        self.assertTrue(df.equals(fetched_df), 'Values are not equal')
+    def test_fail_on_no_timezone(self):
+        with self.assertRaisesRegex(ValueError, 'timestamp must have an associated timezone!'):
+            self.db_wrapper.record_time('foo', None, datetime.now())
 
     def test_update_activity(self):
         # Test updating the activity last recorded
-        self.db_wrapper.record_time('foo', 'default', datetime.now())
+        self.db_wrapper.record_time(
+            'foo', 'default', datetime.now(tz=tz.tzlocal()))
         self.db_wrapper.update_last_record('bar')
 
         last_act_name = self.db_wrapper.db.execute(
@@ -147,7 +125,7 @@ class DBTests(unittest.TestCase):
         self.assertEqual(1, row_count)
 
     def test_backdate(self):
-        time = datetime.now()
+        time = datetime.now(tz=tz.tzlocal())
 
         self.db_wrapper.record_time('foo', None, time, backdated=True)
 
@@ -155,7 +133,7 @@ class DBTests(unittest.TestCase):
             'SELECT backdated FROM timelog').fetchone()[0])
 
     def test_try_reset_non_empty_db(self):
-        self.db_wrapper.record_time('foo', None, datetime.now())
+        self.db_wrapper.record_time('foo', None, datetime.now(tz=tz.tzlocal()))
 
         with self.assertRaises(RuntimeError):
             self.db_wrapper.reset()

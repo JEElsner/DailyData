@@ -2,13 +2,16 @@ import abc
 from datetime import datetime
 from typing import List
 
+from dateutil import tz
+
 
 class TimelogIO(abc.ABC):
     def new_activity(self, activity: str, parent: str = None, is_alias: bool = None):
         pass
 
-    def record_time(self, activity: str, user: str, timestamp: datetime = datetime.now(), backdated=False):
-        pass
+    def record_time(self, activity: str, user: str, timestamp: datetime = datetime.now(tz=tz.tzlocal()), backdated=False):
+        if timestamp.tzinfo is None:
+            raise ValueError('timestamp must have an associated timezone!')
 
     def get_timestamps(self, earliest: datetime, latest: datetime) -> List:
         pass
