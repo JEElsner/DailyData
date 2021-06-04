@@ -24,6 +24,8 @@ class TestTimeManagement(unittest.TestCase):
     @patch('builtins.print')
     @patch('DailyData.time_management.timelog.datetime')
     def test_record_time(self, dtm, prnt):
+        self.io_debug = DebugTimelogIO()
+
         now_value = datetime.now()
         dtm.now = MagicMock(return_value=now_value)
 
@@ -120,6 +122,18 @@ class TestTimeManagement(unittest.TestCase):
         timelog.take_args(self.config, db, argv=['doing', 'bash'])
 
         prnt.assert_called_with('Finished doing bar for 0:07:00')
+
+    @patch('builtins.print')
+    def test_record_custom_time(self, print_hook):
+        time = '10:59'
+
+        self.io_debug.record_time = MagicMock()
+
+        timelog.take_args(self.config, self.io_debug, argv=[
+                          'doing', 'foo', '-t', time])
+
+        self.io_debug.record_time.assert_called_once_with('foo', 'default_usr', timestamp=datetime.now(
+        ).replace(hour=10, minute=59, second=0, microsecond=0, tzinfo=tz.tzlocal()))
 
 
 if __name__ == '__main__':

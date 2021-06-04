@@ -111,7 +111,13 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
 
         if args.time:
             # Use the user-specified time if they have given one
-            time = time_parser.parse(args.time)
+            #
+            # Yes, the 1 microsecond is necessary so that the time is entered
+            # into the database correctly, so that it is then parsed correctly
+            # when read back by sqlite3. This is why people hate programming.
+            # It took me over an hour to figure this out. （｀Δ´）！
+            time = time_parser.parse(args.time).replace(
+                second=0, microsecond=1)
         else:
             # Otherwise use the current time
             time = datetime.now()
@@ -125,15 +131,18 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
         time = time.astimezone(tz.tzlocal())
 
         # Get and print the last activity if our data storage does that
+        last = None
         # TODO make this an interface, instead of just allowing DatabaseWrapper
         if isinstance(io, DatabaseWrapper):
-            last = io.get_last_record()  # Get the last activity
-
-            # Re-combine the timezone with the time
-            if last is not None and last['time'].tzinfo == None:
-                last['time'] = last['time'].replace(tzinfo=tz.tzlocal())
-        else:
-            last = None
+            # Catch errors so it doesn't stop the recording of the time, which
+            # is more important
+            try:
+                last = io.get_last_record()  # Get the last activity
+                # Re-combine the timezone with the time
+                if last is not None and last['time'].tzinfo == None:
+                    last['time'] = last['time'].replace(tzinfo=tz.tzlocal())
+            except ValueError as err:
+                pass
 
         try:
             # If the user wants to change the last activity recorded, do that
