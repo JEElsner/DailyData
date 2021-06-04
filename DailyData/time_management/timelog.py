@@ -19,14 +19,53 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
     '''
     Parses timelog-related arguments.
 
-    TODO Detailed description of commandline arguments.
+    There are two main commands for the timelog: `doing` and `--list`. `doing`
+    is used to record when you (or the user) are doing an activity. `--list` is
+    used to summarize some statistics for how you spend your time based on the
+    activities you record using the `doing` command. The subcommands and
+    options for each command are listed below:
+
+    `doing [activity]`: Records the activity you specify after this keyword. By
+        default, you must have pre-specified the activity as one that can be
+        recorded. This is done to prevent the recording of typos. (See the
+        argument `-n`)
+
+        `-n`/`--new`: Specifies that this is a new activity to add to the list
+            of possible activities to record, allowing you to record whatever
+            activity you specify, and allowing you to record this activity
+            again in the future without the use of this flag.
+
+        `-t`/`--time [time]`: Specifies a time other than the current time at 
+            which to record the activity. It is suggested that you only use
+            times between when the last activity was recorded and the current
+            time, but it *might* work if you specify another time. In terms of
+            formatting this time, `dateutil.parser` is used to parse the time,
+            most standard time formats should be accepted, but refer to that
+            module's documentation for details.
+
+        `-b`/`--back [duration]`: Specifies a duration of offset from the
+            current time. i.e. if it is 10:30, and you specify 20m, the
+            activity will be recorded at 10:10. Acceptable units are `h` for
+            hours, `m` for minutes, `s` for seconds, and `d` for days. Multiple
+            units can be used at once, for example `20m3s`
+
+        `-u`/`--update`: Instead of recording a new time, alter the activity
+            that was last recorded with the new activity that was performed.
+
+    `--list`: Prints a summary of how you have spent your time, including the
+    total time spent doing each activity, what percentage time you spend doing
+    each activity, and how much time per day you spend on average doing each
+    activity.
+
+        `-n`/`--num`: The number of activities to display statistics for. By
+            default, the 10 activites you spend the most time doing are listed.
 
     Args:
-        `time_management_cfg` (`TimeManagementConfig`): The configuration object
-            specifying constant parameters such as the folder for where to read
-            and write file output.
-        `io` (`TimelogIO`): The IO object that performs pre-defined file operations
-            for the timelog
+        `time_management_cfg` (`TimeManagementConfig`): The configuration
+            object specifying constant parameters such as the folder for where
+            to read and write file output.
+        `io` (`TimelogIO`): The IO object that performs pre-defined file
+            operations for the timelog
         `argv` (`List[str]`): The list of arguments to parse. By default, this
             is the arguments passed to the module when executed.
     '''
@@ -34,6 +73,10 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
     # Create the argparser for the timelog command
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
+
+    # TODO adapt this specifically for the 'timelog' command, and remove the
+    # parts about the function
+    parser.add_help(take_args.__doc__)
 
     # Add all the subcommands for the "timelog doing" command
     parser_doing = subparsers.add_parser('doing',
@@ -172,6 +215,7 @@ def parse_time_duration(txt: str) -> timedelta:
                 raise ValueError('Invalid duration: {}'.format(curr_group))
 
             # pattern matching can't come soon enough...
+            # TODO what if something like '20m20m' is given
             if c == 'd':
                 d['days'] = value
             elif c == 'h':
