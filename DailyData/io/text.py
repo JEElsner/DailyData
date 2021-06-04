@@ -32,7 +32,7 @@ class TextIO(TimelogIO):
         for csv_path in self.activity_folder.glob('*.csv'):
             file_date = datetime.strptime(csv_path.stem, '%Y-%m')
 
-            if earliest <= file_date <= latest:
+            if earliest <= file_date < latest:
                 with open(csv_path) as file:
                     df = pd.read_csv(
                         file, names=['activity', 'time'], usecols=[0, 1])

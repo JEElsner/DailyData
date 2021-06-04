@@ -50,6 +50,8 @@ class DBTests(unittest.TestCase):
         self.db_wrapper.new_activity('hug_red_panda')
 
         with self.assertRaises(sqlite3.IntegrityError):
+            # TODO make this a ValueError in line with the spec for
+            # TimelogIO
             self.db_wrapper.new_activity('hug_red_panda')
 
     def test_add_timestamp(self):

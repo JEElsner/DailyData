@@ -47,6 +47,11 @@ def dict_factory(cursor: sqlite3.Cursor, row):
 
 
 class DatabaseWrapper(TimelogIO):
+    '''
+    A Handler to perform common timelog information storage operations on a
+    sqlite3 database.
+    '''
+
     def __init__(self, db_path: Path = None):
 
         if not db_path:
@@ -142,7 +147,7 @@ class DatabaseWrapper(TimelogIO):
         columns = ['time', 'timezone_offset',
                    'timezone_name', 'activity']
 
-        cmd = '''SELECT :cols FROM timelog WHERE time >= :min AND time <= :max
+        cmd = '''SELECT :cols FROM timelog WHERE time >= :min AND time < :max
         '''.replace(':cols', ', '.join(columns))
 
         old_row_factory = self.db.row_factory
@@ -156,7 +161,7 @@ class DatabaseWrapper(TimelogIO):
         self.db.row_factory = old_row_factory
 
         if len(fetch) == 0:
-            return pd.DataFrame(columns=columns)
+            return pd.DataFrame(columns=['time', 'activity'])
 
         frame = pd.DataFrame(fetch, columns=columns)
         frame['time'] = frame.apply(apply_tz, axis=1)
