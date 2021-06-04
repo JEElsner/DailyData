@@ -1,11 +1,11 @@
-'''
+"""
 Jonathan Elsner
 2020
 
 Records various statistics about the user's day, in hopes of better
 understanding what contributes to the user's overall mood on a given day,
 to promote positive lifestyle changes.
-'''
+"""
 
 import json
 import os
@@ -50,10 +50,10 @@ class Journaller:
         self.timezone = datetime.now().astimezone().tzinfo
 
     def record_and_write_to_file(self):
-        '''
+        """
         Take the user's input for the day's statistics and record them. Open the
         journalling program if specified in the configuration file.
-        '''
+        """
 
         # Verify data file exists, and create it if it doesn't
         if not path.exists(self.data_file):
@@ -97,14 +97,14 @@ class Journaller:
                                                 for i in entry.values()]) + '\n')
 
     def record(self):
-        '''
+        """
         Ask questions to the user, returning their responses as a dictionary that
         maps a key word for the question to the user's response.
 
         Returns
 
             dict with string keys for each question with a coresponding response.
-        '''
+        """
 
         # Create the dictionary storing the responses
         entry = {c: None for c in self.columns}
@@ -205,7 +205,7 @@ class Journaller:
         return entry
 
     def open_journal(self, date: date, create_file=parse_docx.new_doc, header_func=parse_docx.add_header):
-        '''
+        """
         Open the user's desired journal program
 
         Arguments
@@ -217,7 +217,7 @@ class Journaller:
 
             a datetime.timedelta instance representing the amount of time the user
             used their journalling program
-        '''
+        """
 
         # Construct the path to the journal file
         journal_path = self.cfg.journal_folder.joinpath(

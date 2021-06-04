@@ -16,7 +16,7 @@ from .config import TimeManagementConfig
 
 
 def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sys.argv[1:]):
-    '''
+    """
     Parses timelog-related arguments.
 
     There are two main commands for the timelog: `doing` and `--list`. `doing`
@@ -35,7 +35,7 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
             activity you specify, and allowing you to record this activity
             again in the future without the use of this flag.
 
-        `-t`/`--time [time]`: Specifies a time other than the current time at 
+        `-t`/`--time [time]`: Specifies a time other than the current time at
             which to record the activity. It is suggested that you only use
             times between when the last activity was recorded and the current
             time, but it *might* work if you specify another time. In terms of
@@ -68,7 +68,7 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
             operations for the timelog
         `argv` (`List[str]`): The list of arguments to parse. By default, this
             is the arguments passed to the module when executed.
-    '''
+    """
 
     # Create the argparser for the timelog command
     parser = argparse.ArgumentParser()
@@ -190,7 +190,7 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
 
 
 def parse_timestamps(time_table: pd.DataFrame, max_time=timedelta(hours=12)) -> pd.DataFrame:
-    '''
+    """
     Parses a Pandas DataFrame containing activities and when they started to
     generate statistics about how much time was spent doing each activity
     over the duration of the recorded times.
@@ -220,7 +220,7 @@ def parse_timestamps(time_table: pd.DataFrame, max_time=timedelta(hours=12)) -> 
         the portion of total time doing each activity. `per_day` has type
         `timedelta` and reprsents how much time on average is spent on the
         activity per day.
-    '''
+    """
 
     # Get the UTC time of each timestamp
     time_table['utc_time'] = pd.to_datetime(time_table['time'], utc=True)
@@ -263,7 +263,7 @@ def parse_timestamps(time_table: pd.DataFrame, max_time=timedelta(hours=12)) -> 
 
 
 def parse_time_duration(txt: str) -> timedelta:
-    '''
+    """
     Parses a string representing a length of time and returns the corresponding
     timedelta.
 
@@ -282,7 +282,7 @@ def parse_time_duration(txt: str) -> timedelta:
         A `timedelta` object for the duration represented by the passed string.
         For example, `parse_time_duration('21m5s')` returns
         `timedelta(minutes=21, seconds=5)`
-    '''
+    """
 
     # The current number being captured
     curr_group = ''
@@ -328,11 +328,11 @@ def parse_time_duration(txt: str) -> timedelta:
 
 
 def timelog_entry_point():
-    '''
+    """
     The entry point used for the `timelog` command. This method is referenced
     in `setup.py` so that when the package is buit, the `timelog` script is
     built and it links to this method.
-    '''
+    """
     from .. import master_config
 
     # Use the master_config file so that when we are finished, any changes

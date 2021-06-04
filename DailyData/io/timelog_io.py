@@ -8,7 +8,7 @@ from pandas import DataFrame
 
 
 class TimelogIO(abc.ABC):
-    '''
+    """
     Provides helper methods for complex file operations in timelog.
 
     This abstract base class is intended to be extended to implement timelog
@@ -23,10 +23,10 @@ class TimelogIO(abc.ABC):
     strongly encouraged to extend rather than override all methods, and invoke
     each method of this class to perform some input validation before
     performing additional steps.
-    '''
+    """
 
     def new_activity(self, activity: str, parent: str = None, is_alias: bool = None):
-        '''
+        """
         Saves a new activity so that new timestamps can be recorded with that
         activity.
 
@@ -47,12 +47,12 @@ class TimelogIO(abc.ABC):
         Raises:
             ValueError: The parent activity does not exist
             ValueError: The new activity already exists
-        '''
+        """
 
         pass
 
     def record_time(self, activity: str, user: str, timestamp: datetime = datetime.now(tz=tz.tzlocal()), backdated=False):
-        '''
+        """
         Records the given activity at the given time.
 
         Args:
@@ -72,13 +72,13 @@ class TimelogIO(abc.ABC):
 
         Raises:
             ValueError: Activity not found
-        '''
+        """
 
         if timestamp.tzinfo is None:
             raise ValueError('timestamp must have an associated timezone!')
 
     def get_timestamps(self, earliest: datetime, latest: datetime) -> DataFrame:
-        '''
+        """
         Returns from file all of the recorded activities within a given range.
 
         Args:
@@ -94,13 +94,13 @@ class TimelogIO(abc.ABC):
             column lists the times as `datetimes` or `timestamps` or possibly
             `NumPy.datetime64[ns]` at which activities were recorded. The
             'activity' column lists the activities recorded at each time.
-        '''
+        """
 
         pass
 
 
 class DebugTimelogIO(TimelogIO):
-    '''
+    """
     A simple extension of TimelogIO for debug purposes.
 
     This was originally made before I understood mocking, so it is possible
@@ -108,16 +108,16 @@ class DebugTimelogIO(TimelogIO):
     class would probably be easier. It might be useful to use this instead
     of a 'real' subclass of TimelogIO in order to avoid accidentally creating
     uneccessary files.
-    '''
+    """
 
     def __init__(self):
         self.clear()
 
     def clear(self):
-        '''
+        """
         Clear all of the debug information from the class, so that it can
         be called with a blank state.
-        '''
+        """
 
         self.args = list()
         self.kwargs = dict()
@@ -129,7 +129,7 @@ class DebugTimelogIO(TimelogIO):
         self.print_updates = False
 
     def __update(self, method, args, kwargs):
-        '''
+        """
         Helper method to update information when object methods are called.
 
         Args:
@@ -142,7 +142,7 @@ class DebugTimelogIO(TimelogIO):
 
         Raises:
             Whatever error is set in `exception_to_raise`
-        '''
+        """
 
         self.args = args
         self.kwargs = kwargs

@@ -47,10 +47,9 @@ def dict_factory(cursor: sqlite3.Cursor, row):
 
 
 class DatabaseWrapper(TimelogIO):
-    '''
-    A Handler to perform common timelog information storage operations on a
-    sqlite3 database.
-    '''
+    """
+    A Handler that performs common timelog operations on a sqlite3 database.
+    """
 
     def __init__(self, db_path: Path = None):
 
