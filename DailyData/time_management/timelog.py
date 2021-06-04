@@ -191,7 +191,7 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
 
 def parse_timestamps(time_table: pd.DataFrame, max_time=timedelta(hours=12)) -> pd.DataFrame:
     '''
-    Parse a Pandas DataFrame containing activities and when they started to
+    Parses a Pandas DataFrame containing activities and when they started to
     generate statistics about how much time was spent doing each activity
     over the duration of the recorded times.
 
@@ -263,12 +263,38 @@ def parse_timestamps(time_table: pd.DataFrame, max_time=timedelta(hours=12)) -> 
 
 
 def parse_time_duration(txt: str) -> timedelta:
+    '''
+    Parses a string representing a length of time and returns the corresponding
+    timedelta.
+
+    Args:
+        txt: A string containing a set of numbers representing durations, each
+            proceeded by a unit of time. For example, a duration could be `20`
+            and the unit of time could be `m` for minutes, which combine to
+            form the token `20m`. Many tokens can be in one string, for
+            example, `3h20m42s`. Valid units of time are:
+                `d` for days,
+                `h` for hours,
+                `m` for minutes,
+                `s` for seconds
+
+    Returns:
+        A `timedelta` object for the duration represented by the passed string.
+        For example, `parse_time_duration('21m5s')` returns
+        `timedelta(minutes=21, seconds=5)`
+    '''
+
+    # The current number being captured
     curr_group = ''
 
+    # dictionary for days, hours, minutes, and seconds
     d = {}
 
     for c in txt:
+        # If the character is a time unit
         if c in ['d', 'h', 'm', 's']:
+            # Raise an error if we have no number for the units
+            # e.g. the passed string was `m`
             if len(curr_group) == 0:
                 raise ValueError('Invalid duration: {}'.format(txt))
 
@@ -277,6 +303,7 @@ def parse_time_duration(txt: str) -> timedelta:
             except:
                 raise ValueError('Invalid duration: {}'.format(curr_group))
 
+            # Assign the value to a unit of time
             # pattern matching can't come soon enough...
             # TODO what if something like '20m20m' is given
             if c == 'd':
@@ -288,17 +315,34 @@ def parse_time_duration(txt: str) -> timedelta:
             elif c == 's':
                 d['seconds'] = value
 
+            # Reset the number being recorded
             curr_group = ''
         elif c.isdigit():
+            # If the character isn't a time unit, and it's a digit, concatenate
+            # it to the number being built
+            # Ignore all other characters
             curr_group += c
 
+    # Build the timedelta from the dictionary and return it
     return timedelta(**d)
 
 
 def timelog_entry_point():
+    '''
+    The entry point used for the `timelog` command. This method is referenced
+    in `setup.py` so that when the package is buit, the `timelog` script is
+    built and it links to this method.
+    '''
     from .. import master_config
 
+    # Use the master_config file so that when we are finished, any changes
+    # to the configuration are saved.
+    #
+    # Doing this with a global variable is probably all kinds of bad, but
+    # idk, it works for now ¯\_(ツ)_/¯
     with master_config:
+        # TODO use a context manager for DatabaseWrapper so the db gets closed
+        # properly
         take_args(master_config.time_management,
                   DatabaseWrapper(master_config.data_folder.joinpath('dailydata.db')))
 
