@@ -190,19 +190,73 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
 
 
 def parse_timestamps(time_table: pd.DataFrame, max_time=timedelta(hours=12)) -> pd.DataFrame:
+    '''
+    Parse a Pandas DataFrame containing activities and when they started to
+    generate statistics about how much time was spent doing each activity
+    over the duration of the recorded times.
+
+    The time spent doing a single activity at a single time is calculated by
+    subtracting the start time of the activity from the start time of the
+    subsequent activity. These durations are then summed to get the total time
+    for each activity over the recorded times. The proportion of time spent
+    per activity versus all time spent and the amount of time spent per day on
+    average for each activity is also calculated.
+
+    Args:
+        `time_table`: A pandas DataFrame containing a column of `datetime`s or
+            `Timestamps`s with the name `time with an index of strings with
+            the activity corresponding to each recorded time, the index's name
+            is `activity`.
+
+        `max_time`: Optional; Specifies the maximum duration for an activity,
+            activities with durations exceeding `max_time` are ignored for the
+            calculations.
+
+    Returns:
+        A pandas DataFrame with columns `duration`, `percent`, and
+        `per_day`. The index is `activity`, and lists each recorded activity
+        once. `duration` has type `timedelta`, and represents the total time
+        spent doing each activity. `percent` has type `float`, and represents
+        the portion of total time doing each activity. `per_day` has type
+        `timedelta` and reprsents how much time on average is spent on the
+        activity per day.
+    '''
+
+    # Get the UTC time of each timestamp
     time_table['utc_time'] = pd.to_datetime(time_table['time'], utc=True)
 
+    # Sort the values by their time, so that the differences are calculated
+    # in the right order
     time_table.sort_values(by=['utc_time'], inplace=True)
+
+    # Calculate the duration of each activity
+    #
+    # This works by using the pandas difference function to find the difference
+    # function between the current record in the next, i.e. current - next,
+    # which is a negative duration, but it associates the difference with the
+    # current activity. All we have to do is negate this value to get the
+    # time spent for each activity starting at the listed time
     time_table['duration'] = -time_table['utc_time'].diff(periods=-1)
 
+    # Ignore activities with duration greater than max_time
     time_table.mask(time_table['duration'] > max_time, inplace=True)
+
+    # Create a table of total durations for each activity
     durations = time_table.groupby(['activity']).sum()
 
+    # Calculate the percentage of time spent on each activity
     durations['percent'] = durations['duration'] / durations['duration'].sum()
 
+    # Calculate the average time spent per day on each activity
     durations['per_day'] = durations['percent'] * timedelta(days=1)
+
+    # Remove the microseconds on the activities, because they add clutter to
+    # the screen.
+    # TODO I don't think this is working right now
     durations['per_day'] = durations['per_day'].apply(
         lambda td: td - timedelta(microseconds=td.microseconds))
+
+    # Sort so that the activities with the greatest time spent come first
     durations.sort_values(by=['duration'], ascending=False, inplace=True)
 
     return durations
