@@ -71,12 +71,11 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
     """
 
     # Create the argparser for the timelog command
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(usage=take_args.__doc__)
     subparsers = parser.add_subparsers()
 
-    # TODO adapt this specifically for the 'timelog' command, and remove the
-    # parts about the function
-    parser.add_help(take_args.__doc__)
+    # TODO adapt help message specifically for the 'timelog' command
+    # remove the stuff about the function
 
     # Add all the subcommands for the "timelog doing" command
     parser_doing = subparsers.add_parser('doing',
