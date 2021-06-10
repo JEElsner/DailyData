@@ -1,3 +1,4 @@
+import sqlite3
 from unittest.mock import MagicMock
 from DailyData.time_management.config import TimeManagementConfig
 from datetime import datetime, timedelta
@@ -9,24 +10,29 @@ import unittest
 from dateutil import tz
 
 
+def reset_db(con: sqlite3.Connection):
+    # Remove any new rows
+    # TODO make this unnecessary by modifying DatabaseWrapper
+    con.execute('DELETE FROM timelog WHERE id>3317')
+    con.commit()
+
+
 class TestWithData(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.db_wrapper = DatabaseWrapper(
             './tests/sample_data/sample.db')
 
-        # Remove any new rows
-        # TODO make this unnecessary by modifying DatabaseWrapper
-        cls.db_wrapper.db.execute('DELETE FROM timelog WHERE id>3317')
-        cls.db_wrapper.db.commit()
+        reset_db(cls.db_wrapper.db)
 
         cls.config = TimeManagementConfig()
 
+    @classmethod
+    def tearDownClass(cls) -> None:
+        reset_db(cls.db_wrapper.db)
+
     def tearDown(self) -> None:
-        # Remove any new rows
-        # TODO make this unnecessary by modifying DatabaseWrapper
-        self.db_wrapper.db.execute('DELETE FROM timelog WHERE id>3317')
-        self.db_wrapper.db.commit()
+        reset_db(self.db_wrapper.db)
 
     def test_parse_timestamps(self):
         timelog.parse_timestamps(
