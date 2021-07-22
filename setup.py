@@ -1,3 +1,5 @@
+import versioneer
+
 from setuptools import setup, find_packages
 
 with open('README.md', 'r', encoding='utf-8') as readme:
@@ -5,7 +7,8 @@ with open('README.md', 'r', encoding='utf-8') as readme:
 
 setup(
     name='DailyData',
-    version='0.0.1post',
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     author='Jonathan Elsner',
     author_email='jeelsner@outlook.com',
     description='A package for recording and reviewing data about your day',

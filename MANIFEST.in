@@ -1,1 +1,3 @@
 include ./src/DailyData/config.json
+include versioneer.py
+include DailyData/_version.py

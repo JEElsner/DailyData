@@ -13,3 +13,5 @@ numpy==1.19.3
 
 openpyxl # For whatever reason, pandas needs this module, but doesn't include it in requirements
 pandas
+
+versioneer # To keep track of the current version
