@@ -1,0 +1,9 @@
+[run]
+omit = 
+    .venv/*
+    anonymize.py
+    setup.py
+    versioneer.py
+    DailyData/_version.py
+    tests/*
+    analyzer/*
