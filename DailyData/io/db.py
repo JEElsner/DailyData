@@ -1,15 +1,17 @@
-from DailyData.time_management.recorded_activity import RecordedActivity
-from DailyData.io.timelog_io import TimelogIO
+from distutils.util import execute
 import sqlite3
-from pathlib import Path
-from importlib import resources
 from datetime import datetime, timedelta, tzinfo
-from sqlite3.dbapi2 import Row
+from importlib import resources
+from pathlib import Path
+from sqlite3.dbapi2 import OperationalError, Row
 from typing import Any, Dict, List
-from dateutil import tz
-import numpy as np
 
+import numpy as np
 import pandas as pd
+from DailyData import __version__
+from DailyData.io.timelog_io import TimelogIO
+from DailyData.time_management.recorded_activity import RecordedActivity
+from dateutil import tz
 from pandas.core import series
 
 SCHEMA = 'schema.sql'
@@ -64,8 +66,18 @@ class DatabaseWrapper(TimelogIO):
         n_tables = self.db.execute(
             'SELECT COUNT(name) FROM sqlite_master WHERE type="table" AND name NOT LIKE "sqlite_%";').fetchone()[0]
 
-        if n_tables == 0:
-            self.reset()
+        try:
+            if n_tables == 0 or self.db.execute('SELECT version FROM metadata').fetchone()[0] != __version__:
+                # Run the schema script to create/update the tables if they do not exist, or are not the same version as the current program.
+                print('Updating database')
+                self.run_schema()
+        except (
+            sqlite3.OperationalError,
+            TypeError
+        )as err:
+            if isinstance(err, TypeError) or 'no such table: metadata' in ';'.join(err.args):
+                print('Updating database')
+                self.run_schema()
 
     def __exit__(self, ex_type, ex_val, ex_tb):
         self.db.close()
@@ -240,19 +252,17 @@ class DatabaseWrapper(TimelogIO):
         })
         self.db.commit()
 
-    def reset(self, force=False) -> None:
-        try:
-            row_count = self.db.execute(
-                'SELECT COUNT(*) FROM timelog').fetchone()[0]
-
-            if row_count > 0 and not force:
-                raise RuntimeError(
-                    'Attempted to reset non-empty database. Set force=True, cross your heart, and hope to die to really make it go away.')
-        except sqlite3.OperationalError as err:
-            pass
-
+    def run_schema(self) -> None:
         with resources.open_text(package='DailyData.io', resource=SCHEMA, encoding='utf8') as f:
-            self.db.executescript(f.read())
+            try:
+                self.db.executescript(f.read())
+            except OperationalError as err:
+                if 'duplicate column name' in '; '.join(err.args):
+                    pass
+                else:
+                    raise err
+
+        self.db.execute('UPDATE metadata SET version = ?', (__version__, ))
 
 
 def __main(path: Path):

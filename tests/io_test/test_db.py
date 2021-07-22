@@ -134,12 +134,6 @@ class DBTests(unittest.TestCase):
         self.assertEqual(True, self.db_wrapper.db.execute(
             'SELECT backdated FROM timelog').fetchone()[0])
 
-    def test_try_reset_non_empty_db(self):
-        self.db_wrapper.record_time('foo', None, datetime.now(tz=tz.tzlocal()))
-
-        with self.assertRaises(RuntimeError):
-            self.db_wrapper.reset()
-
     def tearDown(self) -> None:
         self.db_wrapper.db.close()
 
