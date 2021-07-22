@@ -1,3 +1,4 @@
+from DailyData.time_management.recorded_activity import RecordedActivity
 from DailyData.io.timelog_io import TimelogIO
 import sqlite3
 from pathlib import Path
@@ -114,6 +115,8 @@ class DatabaseWrapper(TimelogIO):
     def record_time(self, activity: str, user: str, timestamp: datetime, backdated=False):
         super().record_time(activity, user, timestamp, backdated)
 
+        last = self.get_last_record()
+
         insert_cmd = '''INSERT INTO timelog (time, timezone_name, timezone_offset, activity, user, backdated)
         VALUES(:time, :tz_name, :tz_offset, :act, :user, :backdated);
         '''
@@ -141,6 +144,8 @@ class DatabaseWrapper(TimelogIO):
         })
 
         self.db.commit()
+
+        return last
 
     def get_timestamps(self, earliest: datetime, latest: datetime) -> pd.DataFrame:
         columns = ['time', 'timezone_offset',
@@ -196,7 +201,12 @@ class DatabaseWrapper(TimelogIO):
 
         del dict_rec['timezone_name'], dict_rec['timezone_offset']
 
-        return dict_rec
+        return RecordedActivity(name=dict_rec['activity'],
+                                time=dict_rec['time'],
+                                duration=None,
+                                user=dict_rec['user'],
+                                backdated=dict_rec['backdated'],
+                                id=dict_rec['id'])
 
     def update_last_record(self, activity: str, search_by_id=False):
         old_act = activity

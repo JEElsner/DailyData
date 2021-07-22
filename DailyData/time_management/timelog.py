@@ -1,4 +1,5 @@
 import argparse
+from dataclasses import dataclass, field
 import re
 import sys
 from datetime import date, datetime, timedelta
@@ -58,7 +59,7 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
     activity.
 
         `-n`/`--num`: The number of activities to display statistics for. By
-            default, the 10 activites you spend the most time doing are listed.
+            default, the 10 activities you spend the most time doing are listed.
 
     Args:
         `time_management_cfg` (`TimeManagementConfig`): The configuration
@@ -129,19 +130,8 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
         # Give the time the local timezone
         time = time.astimezone(tz.tzlocal())
 
-        # Get and print the last activity if our data storage does that
+        # Create a variable to store the last activity if we can
         last = None
-        # TODO make this an interface, instead of just allowing DatabaseWrapper
-        if isinstance(io, DatabaseWrapper):
-            # Catch errors so it doesn't stop the recording of the time, which
-            # is more important
-            try:
-                last = io.get_last_record()  # Get the last activity
-                # Re-combine the timezone with the time
-                if last is not None and last['time'].tzinfo == None:
-                    last['time'] = last['time'].replace(tzinfo=tz.tzlocal())
-            except ValueError as err:
-                pass
 
         try:
             # If the user wants to change the last activity recorded, do that
@@ -155,8 +145,8 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
                     print('Update not supported by data storage system')
             else:
                 # Otherwise, record a new activity
-                io.record_time(args.event, 'default_usr',
-                               timestamp=time)
+                last = io.record_time(args.event, 'default_usr',
+                                      timestamp=time)
                 print('Recorded doing {activity} at {time}'.format(
                     activity=args.event,
                     time=time.strftime('%H:%M')))
@@ -170,8 +160,8 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
         # it fails to record an activity
         if last and not args.update:
             print('Finished doing {act} for {time}'.format(
-                act=last['activity'],
-                time=time - last['time']
+                act=last.name,
+                time=time - last.time
             ))
     elif args.list:
         # If the user wants to get a summary of how they spent their time
@@ -217,7 +207,7 @@ def parse_timestamps(time_table: pd.DataFrame, max_time=timedelta(hours=12)) -> 
         once. `duration` has type `timedelta`, and represents the total time
         spent doing each activity. `percent` has type `float`, and represents
         the portion of total time doing each activity. `per_day` has type
-        `timedelta` and reprsents how much time on average is spent on the
+        `timedelta` and represents how much time on average is spent on the
         activity per day.
     """
 

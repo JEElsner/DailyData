@@ -1,3 +1,4 @@
+from DailyData.time_management.recorded_activity import RecordedActivity
 import abc
 from datetime import datetime
 from typing import List
@@ -51,7 +52,7 @@ class TimelogIO(abc.ABC):
 
         pass
 
-    def record_time(self, activity: str, user: str, timestamp: datetime = datetime.now(tz=tz.tzlocal()), backdated=False):
+    def record_time(self, activity: str, user: str, timestamp: datetime = datetime.now(tz=tz.tzlocal()), backdated=False) -> RecordedActivity:
         """
         Records the given activity at the given time.
 
@@ -68,7 +69,9 @@ class TimelogIO(abc.ABC):
                 that it started.
 
         Returns:
-            None
+            A RecordedActivity instance of the last activity the user was
+            recorded doing chronologically if supported by the data storage
+            system.
 
         Raises:
             ValueError: Activity not found
@@ -76,6 +79,8 @@ class TimelogIO(abc.ABC):
 
         if timestamp.tzinfo is None:
             raise ValueError('timestamp must have an associated timezone!')
+
+        return None
 
     def get_timestamps(self, earliest: datetime, latest: datetime) -> DataFrame:
         """
