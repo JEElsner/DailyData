@@ -9,6 +9,7 @@ import json
 # random test files
 #
 # Re enable by putting unittest.TestCase inside the parentheses
+@unittest.skip
 class TestCompileJournal():
     def test_word_count(self):
         lines = ['c c b b a a a a', 'b']

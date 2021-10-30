@@ -9,6 +9,7 @@ from DailyData.analyzer import parse_docx
 
 
 class TestParseDocx():
+    @unittest.skip
     def test_get_lines(self):
         entries = list(parse_docx.get_lines('./tests/test.docx'))
 
