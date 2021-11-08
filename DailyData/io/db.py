@@ -79,6 +79,9 @@ class DatabaseWrapper(TimelogIO):
                 print('Updating database')
                 self.run_schema()
 
+    def __enter__(self, *args, **kwargs):
+        pass
+
     def __exit__(self, ex_type, ex_val, ex_tb):
         self.db.close()
 
