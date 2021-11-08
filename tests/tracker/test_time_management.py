@@ -133,7 +133,7 @@ class TestTimeManagement(unittest.TestCase):
         timelog.take_args(self.config, self.io_debug, argv=[
                           'doing', 'foo', '-t', time])
 
-        # See timelog in take_args (approx. line 119) for why 1 microsecond is
+        # See take_args in timelog (approx. line 119) for why 1 microsecond is
         # necessary
         self.io_debug.record_time.assert_called_once_with('foo', 'default_usr', timestamp=datetime.now(
         ).replace(hour=10, minute=59, second=0, microsecond=1, tzinfo=tz.tzlocal()))
