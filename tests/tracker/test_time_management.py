@@ -9,6 +9,7 @@ from DailyData.io.timelog_io import DebugTimelogIO
 from DailyData.time_management import timelog
 from DailyData.time_management.config import TimeManagementConfig
 from dateutil import tz
+from dateutil import parser as date_parser
 
 
 class TestTimeManagement(unittest.TestCase):
@@ -136,6 +137,24 @@ class TestTimeManagement(unittest.TestCase):
         # necessary
         self.io_debug.record_time.assert_called_once_with('foo', 'default_usr', timestamp=datetime.now(
         ).replace(hour=10, minute=59, second=0, microsecond=1, tzinfo=tz.tzlocal()))
+
+
+def test_last_act_before_most_recent(staged_db: DatabaseWrapper):
+    """
+    Make sure that if we record a time before another activity already
+    in the timelog, that we don't get a negative duration from that
+    activity to this new one, instead make sure that it finds the
+    previous activity in time.
+    """
+
+    time = datetime(2021, 1, 1, 0, 30, 0, tzinfo=tz.UTC)
+
+    last = staged_db.record_time('foo', 'user1', time)
+
+    assert last is not None
+    assert last.name == 'activity1'
+    assert last.time == datetime(2021, 1, 1, 0, 0, 0, tzinfo=tz.UTC)
+    assert last.duration == timedelta(minutes=30)
 
 
 if __name__ == '__main__':

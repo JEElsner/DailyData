@@ -130,7 +130,7 @@ class DatabaseWrapper(TimelogIO):
     def record_time(self, activity: str, user: str, timestamp: datetime, backdated=False):
         super().record_time(activity, user, timestamp, backdated)
 
-        last = self.get_last_record()
+        last = self.get_last_record(before=timestamp)
 
         insert_cmd = '''INSERT INTO timelog (time, timezone_name, timezone_offset, activity, user, backdated)
         VALUES(:time, :tz_name, :tz_offset, :act, :user, :backdated);
@@ -186,11 +186,12 @@ class DatabaseWrapper(TimelogIO):
         frame['time'] = frame.apply(apply_tz, axis=1)
         return frame.drop(columns=['timezone_name', 'timezone_offset'])
 
-    def get_last_record(self, as_entered=False) -> Dict[str, Any]:
+    def get_last_record(self, before=datetime.now(), as_entered=False) -> Dict[str, Any]:
         if as_entered:
             cmd = '''SELECT *
             FROM
                 timelog
+            WHERE time <= ?
             ORDER BY
                 id DESC
             LIMIT 1;
@@ -199,12 +200,13 @@ class DatabaseWrapper(TimelogIO):
             cmd = '''SELECT *
             FROM
                 timelog
+            WHERE time <= ?
             ORDER BY
                 time DESC
             LIMIT 1;
             '''
 
-        record: Row = self.db.execute(cmd).fetchone()
+        record: Row = self.db.execute(cmd, (before,)).fetchone()
 
         if record is None:
             return None
@@ -218,7 +220,7 @@ class DatabaseWrapper(TimelogIO):
 
         return RecordedActivity(name=dict_rec['activity'],
                                 time=dict_rec['time'],
-                                duration=None,
+                                duration=before-dict_rec['time'],
                                 user=dict_rec['user'],
                                 backdated=dict_rec['backdated'],
                                 id=dict_rec['id'])

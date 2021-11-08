@@ -161,7 +161,7 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
         if last and not args.update:
             print('Finished doing {act} for {time}'.format(
                 act=last.name,
-                time=time - last.time
+                time=last.duration
             ))
     elif args.list:
         # If the user wants to get a summary of how they spent their time
