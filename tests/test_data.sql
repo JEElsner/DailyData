@@ -1,5 +1,5 @@
 BEGIN TRANSACTION;
-INSERT INTO users
+INSERT INTO user
 VALUES ('user1'),
     ('user2');
 INSERT INTO activity (name, parent, alias)
@@ -10,7 +10,8 @@ VALUES ('activity1', NULL, NULL),
     ('activity3', NULL, NULL),
     ('activity4', NULL, NULL),
     ('activity5', NULL, NULL),
-    ('activity6', NULL, NULL) ('tz_activity', NULL, NULL),
+    ('activity6', NULL, NULL),
+    ('tz_activity', NULL, NULL),
     ('foo', NULL, NULL),
     ('bar', NULL, NULL),
     ('bash', NULL, NULL);
