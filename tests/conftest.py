@@ -17,6 +17,8 @@ def test_config(tmp_path):
     cfg = TimeManagementConfig()
     cfg.activity_folder = tmp_path
 
+    return cfg
+
 
 @pytest.fixture
 def real_data_db():
