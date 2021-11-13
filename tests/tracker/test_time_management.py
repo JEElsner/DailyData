@@ -157,5 +157,9 @@ def test_last_act_before_most_recent(staged_db: DatabaseWrapper):
     assert last.duration == timedelta(minutes=30)
 
 
+def test_show_summary(test_config, staged_db: DatabaseWrapper):
+    timelog.take_args(test_config, staged_db, argv=['summary'])
+
+
 if __name__ == '__main__':
     unittest.main()

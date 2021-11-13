@@ -1,9 +1,10 @@
 import argparse
-from dataclasses import dataclass, field
 import re
 import sys
+from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from typing import List
 
 import pandas as pd
 from DailyData import time_management
@@ -16,7 +17,7 @@ from dateutil import tz
 from .config import TimeManagementConfig
 
 
-def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sys.argv[1:]):
+def take_args(time_management_cfg: TimeManagementConfig, io: TimelogIO, argv=sys.argv[1:]):
     """
     Parses timelog-related arguments.
 
@@ -73,7 +74,10 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
 
     # Create the argparser for the timelog command
     parser = argparse.ArgumentParser(usage=take_args.__doc__)
-    subparsers = parser.add_subparsers()
+    subparsers = parser.add_subparsers(dest='subparser')
+
+    parser.set_defaults(time_management_cfg=time_management_cfg,
+                        io=io)
 
     # TODO adapt help message specifically for the 'timelog' command
     # remove the stuff about the function
@@ -81,6 +85,7 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
     # Add all the subcommands for the "timelog doing" command
     parser_doing = subparsers.add_parser('doing',
                                          help='Record an activity')
+    parser_doing.set_defaults(func=record)
     parser_doing.add_argument('event', help='The event you are recording')
     parser_doing.add_argument('-n', '--new',
                               action='store_true',
@@ -88,6 +93,10 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
     parser_doing.add_argument('-t', '--time', action='store')
     parser_doing.add_argument('-b', '--back', action='store')
     parser_doing.add_argument('-u', '--update', action='store_true')
+
+    parser_summary = subparsers.add_parser(
+        'summary', help='Summarizes how you spend your time')
+    parser_summary.set_defaults(func=summary)
 
     # Add all the subcommands for the "timelog --list" command
     # TODO: This needs to be better fleshed out. ideally, "list" would be it's
@@ -102,80 +111,89 @@ def take_args(time_manangement_cfg: TimeManagementConfig, io: TimelogIO, argv=sy
     # get and parse the args passed to the method
     args = parser.parse_args(argv)
 
-    # If the user wants to record a time
-    if not args.list:
-        # When the user is specifying that a new activity will be created
-        if args.new:
-            # Create the activity in the file system
-            io.new_activity(args.event)
+    # Temporary patch to keep --list option working. Don't want to
+    # phase this out yet
+    if args.list:
+        summary(**vars(args))
 
-        if args.time:
-            # Use the user-specified time if they have given one
-            #
-            # Yes, the 1 microsecond is necessary so that the time is entered
-            # into the database correctly, so that it is then parsed correctly
-            # when read back by sqlite3. This is why people hate programming.
-            # It took me over an hour to figure this out. （｀Δ´）！
-            time = time_parser.parse(args.time).replace(
-                second=0, microsecond=1)
-        else:
-            # Otherwise use the current time
-            time = datetime.now()
+    # call the function associated with the invoked subparser and pass the
+    # given arguments
+    args.func(**vars(args))
 
-            if args.back:
-                # If the user has specified that the timestamp will be recorded
-                # relative to the current time, subtract the offset
-                time -= parse_time_duration(args.back)
 
-        # Give the time the local timezone
-        time = time.astimezone(tz.tzlocal())
+def record(io, **kwargs: List[str]):
+    # When the user is specifying that a new activity will be created
+    if kwargs.get('new'):
+        # Create the activity in the file system
+        io.new_activity(kwargs['event'])
 
-        # Create a variable to store the last activity if we can
-        last = None
+    if kwargs.get('time'):
+        # Use the user-specified time if they have given one
+        #
+        # Yes, the 1 microsecond is necessary so that the time is entered
+        # into the database correctly, so that it is then parsed correctly
+        # when read back by sqlite3. This is why people hate programming.
+        # It took me over an hour to figure this out. （｀Δ´）！
+        time = time_parser.parse(kwargs['time']).replace(
+            second=0, microsecond=1)
+    else:
+        # Otherwise use the current time
+        time = datetime.now()
 
-        try:
-            # If the user wants to change the last activity recorded, do that
-            if args.update:
-                # Only if the file system supports it
-                # TODO make interface
-                if isinstance(io, DatabaseWrapper):
-                    io.update_last_record(args.event)
-                    print('Updated last activity to doing', args.event)
-                else:
-                    print('Update not supported by data storage system')
+        if kwargs.get('back'):
+            # If the user has specified that the timestamp will be recorded
+            # relative to the current time, subtract the offset
+            time -= parse_time_duration(kwargs['back'])
+
+    # Give the time the local timezone
+    time = time.astimezone(tz.tzlocal())
+
+    # Create a variable to store the last activity if we can
+    last = None
+
+    try:
+        # If the user wants to change the last activity recorded, do that
+        if kwargs.get('update'):
+            # Only if the file system supports it
+            # TODO make interface
+            if isinstance(io, DatabaseWrapper):
+                io.update_last_record(kwargs['event'])
+                print('Updated last activity to doing', kwargs['event'])
             else:
-                # Otherwise, record a new activity
-                last = io.record_time(args.event, 'default_usr',
-                                      timestamp=time)
-                print('Recorded doing {activity} at {time}'.format(
-                    activity=args.event,
-                    time=time.strftime('%H:%M')))
-        except ValueError:
-            # Print an error message when the activity to record is not one
-            # pre-defined by the user
-            print(
-                'Unknown activity \'{0}\', did not record.\nUse [-n] if you want to add a new activity.'.format(args.event))
-
-        # TODO move inside the try/catch block so that this isn't printed when
-        # it fails to record an activity
-        if last and not args.update:
-            print('Finished doing {act} for {time}'.format(
-                act=last.name,
-                time=last.duration
-            ))
-    elif args.list:
-        # If the user wants to get a summary of how they spent their time
-
-        # Define the time range for the search query
-        first = time_manangement_cfg.list_begin_time
-        last = datetime.now()
-
-        # Print a message to the user telling them the search time range
+                print('Update not supported by data storage system')
+        else:
+            # Otherwise, record a new activity
+            last = io.record_time(kwargs['event'], 'default_usr',
+                                  timestamp=time)
+            print('Recorded doing {activity} at {time}'.format(
+                activity=kwargs['event'],
+                time=time.strftime('%H:%M')))
+    except ValueError:
+        # Print an error message when the activity to record is not one
+        # pre-defined by the user
         print(
-            'Between {:%Y-%m-%d} and {:%Y-%m-%d}, you have spent your time as follows:'.format(first, last))
+            'Unknown activity \'{0}\', did not record.\nUse [-n] if you want to add a new activity.'.format(kwargs['event']))
 
-        # Print a table of activities and how much time is spent for each
-        print(parse_timestamps(io.get_timestamps(first, last))[:args.num])
+    # TODO move inside the try/catch block so that this isn't printed when
+    # it fails to record an activity
+    if last and not kwargs.get('update'):
+        print('Finished doing {act} for {time}'.format(
+            act=last.name,
+            time=last.duration
+        ))
+
+
+def summary(time_management_cfg: TimeManagementConfig, io: TimelogIO, **kwargs: List[str]):
+    # Define the time range for the search query
+    first = time_management_cfg.list_begin_time
+    last = datetime.now()
+
+    # Print a message to the user telling them the search time range
+    print(
+        'Between {:%Y-%m-%d} and {:%Y-%m-%d}, you have spent your time as follows:'.format(first, last))
+
+    # Print a table of activities and how much time is spent for each
+    print(parse_timestamps(io.get_timestamps(first, last))[:kwargs['num']])
 
 
 def parse_timestamps(time_table: pd.DataFrame, max_time=timedelta(hours=12)) -> pd.DataFrame:
@@ -319,7 +337,7 @@ def parse_time_duration(txt: str) -> timedelta:
 def timelog_entry_point():
     """
     The entry point used for the `timelog` command. This method is referenced
-    in `setup.py` so that when the package is buit, the `timelog` script is
+    in `setup.py` so that when the package is built, the `timelog` script is
     built and it links to this method.
     """
     from .. import master_config
